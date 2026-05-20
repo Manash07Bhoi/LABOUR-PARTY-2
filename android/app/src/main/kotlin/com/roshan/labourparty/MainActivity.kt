@@ -1,4 +1,4 @@
-package com.roshan.labour_party
+package com.roshan.labourparty
 
 import io.flutter.embedding.android.FlutterActivity
 

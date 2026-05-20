@@ -109,16 +109,45 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       Work work;
       int nextTripNumber = 1;
 
-      if (event.session == 'Morning') {
-        nextTripNumber = currentState.morningTripCount + 1;
-      } else {
-        if (currentState.morningTripCount > 0) {
-          nextTripNumber =
-              currentState.morningTripCount + currentState.eveningTripCount + 1;
-        } else {
-          nextTripNumber = currentState.eveningTripCount + 1;
-        }
-      }
+      // To find the absolute next trip number, we check the highest trip number of the day across both sessions
+      int highestMorningTrip = 0;
+      int highestEveningTrip = 0;
+
+      final morningWorkResult = await getWorkByDateAndSession(
+        event.date,
+        'Morning',
+      );
+      await morningWorkResult.fold((f) async {}, (w) async {
+        final tResult = await getTripsForWork(w.id);
+        tResult.fold((f) {}, (trips) {
+          if (trips.isNotEmpty) {
+            highestMorningTrip = trips
+                .map((t) => t.tripNumber)
+                .reduce((a, b) => a > b ? a : b);
+          }
+        });
+      });
+
+      final eveningWorkResult = await getWorkByDateAndSession(
+        event.date,
+        'Evening',
+      );
+      await eveningWorkResult.fold((f) async {}, (w) async {
+        final tResult = await getTripsForWork(w.id);
+        tResult.fold((f) {}, (trips) {
+          if (trips.isNotEmpty) {
+            highestEveningTrip = trips
+                .map((t) => t.tripNumber)
+                .reduce((a, b) => a > b ? a : b);
+          }
+        });
+      });
+
+      nextTripNumber =
+          (highestEveningTrip > highestMorningTrip
+              ? highestEveningTrip
+              : highestMorningTrip) +
+          1;
 
       if (currentState.currentWork != null) {
         work = currentState.currentWork!;
@@ -139,12 +168,31 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       String driverName = '';
       List<TripLabour> copiedLabours = [];
 
-      if (currentState.currentTrips.isNotEmpty) {
-        final lastTrip = currentState.currentTrips.last;
-        tractor = lastTrip.tractor;
-        driverName = lastTrip.driverName;
+      // Try to find the absolute last trip of the day to copy data from
+      Trip? lastTripToCopy;
 
-        final lastTripLaboursResult = await getLaboursForTrip(lastTrip.id);
+      if (currentState.currentTrips.isNotEmpty) {
+        // If there are trips in the current session, use the last one
+        lastTripToCopy = currentState.currentTrips.last;
+      } else if (event.session == 'Evening') {
+        // If it's the evening session and there are no trips yet, try to get the last trip from the morning session
+        await morningWorkResult.fold((f) async {}, (w) async {
+          final tResult = await getTripsForWork(w.id);
+          tResult.fold((f) {}, (trips) {
+            if (trips.isNotEmpty) {
+              lastTripToCopy = trips.last;
+            }
+          });
+        });
+      }
+
+      if (lastTripToCopy != null) {
+        tractor = lastTripToCopy!.tractor;
+        driverName = lastTripToCopy!.driverName;
+
+        final lastTripLaboursResult = await getLaboursForTrip(
+          lastTripToCopy!.id,
+        );
         lastTripLaboursResult.fold((f) {}, (labours) {
           copiedLabours = labours
               .map(

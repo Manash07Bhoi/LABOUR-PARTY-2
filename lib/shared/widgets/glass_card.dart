@@ -22,17 +22,24 @@ class GlassCard extends StatelessWidget {
     return GlassContainer(
       width: width,
       height: height,
-      blur: 15,
-      color: Colors.white.withAlpha(25),
+      blur: 8,
+      color: Colors.black.withAlpha(100),
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Colors.white.withAlpha(51), Colors.white.withAlpha(12)],
+        colors: [
+          Colors.white.withAlpha(30),
+          Colors.white.withAlpha(10),
+        ],
       ),
       border: Border.fromBorderSide(
-        BorderSide(color: Colors.white.withAlpha(51), width: 1),
+        BorderSide(
+          color: Colors.white.withAlpha(40),
+          width: 0.5,
+        ),
       ),
-      shadowStrength: 4,
+      shadowStrength: 2,
+      shadowColor: Colors.black.withAlpha(50),
       borderRadius: BorderRadius.circular(borderRadius),
       child: Padding(
         padding: padding ?? const EdgeInsets.all(16.0),

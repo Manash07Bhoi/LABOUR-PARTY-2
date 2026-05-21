@@ -29,6 +29,13 @@ class RemoveLatestTripEvent extends WorkEvent {
   const RemoveLatestTripEvent();
 }
 
+class DeleteSpecificTripEvent extends WorkEvent {
+  final String tripId;
+  const DeleteSpecificTripEvent(this.tripId);
+  @override
+  List<Object?> get props => [tripId];
+}
+
 class SaveFullWorkTripEvent extends WorkEvent {
   final Work work;
   final Trip trip;

@@ -16,6 +16,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   final DeleteTripUseCase deleteTrip;
   final GetLaboursForTripUseCase getLaboursForTrip;
   final SaveTripLabourUseCase saveTripLabour;
+  final CalculateNextTripNumberUseCase calculateNextTripNumber;
   final Uuid uuid = const Uuid();
 
   WorkBloc({
@@ -27,11 +28,18 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     required this.deleteTrip,
     required this.getLaboursForTrip,
     required this.saveTripLabour,
+    required this.calculateNextTripNumber,
   }) : super(WorkInitial()) {
     on<LoadDashboardDataEvent>(_onLoadDashboardData);
     on<AddQuickTripEvent>(_onAddQuickTrip);
     on<RemoveLatestTripEvent>(_onRemoveLatestTrip);
+    on<DeleteSpecificTripEvent>(_onDeleteSpecificTrip);
     on<SaveFullWorkTripEvent>(_onSaveFullWorkTrip);
+  }
+
+  Future<int> _getNextTripNum(String date) async {
+    final result = await calculateNextTripNumber(date);
+    return result.fold((l) => 1, (r) => r);
   }
 
   Future<void> _onLoadDashboardData(
@@ -107,47 +115,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       emit(WorkLoading());
 
       Work work;
-      int nextTripNumber = 1;
-
-      // To find the absolute next trip number, we check the highest trip number of the day across both sessions
-      int highestMorningTrip = 0;
-      int highestEveningTrip = 0;
-
-      final morningWorkResult = await getWorkByDateAndSession(
-        event.date,
-        'Morning',
-      );
-      await morningWorkResult.fold((f) async {}, (w) async {
-        final tResult = await getTripsForWork(w.id);
-        tResult.fold((f) {}, (trips) {
-          if (trips.isNotEmpty) {
-            highestMorningTrip = trips
-                .map((t) => t.tripNumber)
-                .reduce((a, b) => a > b ? a : b);
-          }
-        });
-      });
-
-      final eveningWorkResult = await getWorkByDateAndSession(
-        event.date,
-        'Evening',
-      );
-      await eveningWorkResult.fold((f) async {}, (w) async {
-        final tResult = await getTripsForWork(w.id);
-        tResult.fold((f) {}, (trips) {
-          if (trips.isNotEmpty) {
-            highestEveningTrip = trips
-                .map((t) => t.tripNumber)
-                .reduce((a, b) => a > b ? a : b);
-          }
-        });
-      });
-
-      nextTripNumber =
-          (highestEveningTrip > highestMorningTrip
-              ? highestEveningTrip
-              : highestMorningTrip) +
-          1;
+      int nextTripNumber = await _getNextTripNum(event.date);
 
       if (currentState.currentWork != null) {
         work = currentState.currentWork!;
@@ -168,14 +136,12 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       String driverName = '';
       List<TripLabour> copiedLabours = [];
 
-      // Try to find the absolute last trip of the day to copy data from
       Trip? lastTripToCopy;
 
       if (currentState.currentTrips.isNotEmpty) {
-        // If there are trips in the current session, use the last one
         lastTripToCopy = currentState.currentTrips.last;
       } else if (event.session == 'Evening') {
-        // If it's the evening session and there are no trips yet, try to get the last trip from the morning session
+        final morningWorkResult = await getWorkByDateAndSession(event.date, 'Morning');
         await morningWorkResult.fold((f) async {}, (w) async {
           final tResult = await getTripsForWork(w.id);
           tResult.fold((f) {}, (trips) {
@@ -233,6 +199,25 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     }
   }
 
+  Future<void> _onDeleteSpecificTrip(
+    DeleteSpecificTripEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    if (state is DashboardLoaded) {
+      final currentState = state as DashboardLoaded;
+      emit(WorkLoading());
+      await deleteTrip(event.tripId);
+      if (currentState.currentWork != null) {
+        add(
+          LoadDashboardDataEvent(
+            currentState.currentWork!.date,
+            currentState.currentWork!.session,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _onRemoveLatestTrip(
     RemoveLatestTripEvent event,
     Emitter<WorkState> emit,
@@ -260,8 +245,20 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     Emitter<WorkState> emit,
   ) async {
     emit(WorkLoading());
+
+    int nextTripNumber = await _getNextTripNum(event.work.date);
+
+    Trip finalTrip = Trip(
+      id: event.trip.id,
+      workId: event.trip.workId,
+      tripNumber: nextTripNumber,
+      tractor: event.trip.tractor,
+      driverName: event.trip.driverName,
+      createdAt: event.trip.createdAt,
+    );
+
     await saveWork(event.work);
-    await saveTrip(event.trip);
+    await saveTrip(finalTrip);
     for (var tl in event.tripLabours) {
       await saveTripLabour(tl);
     }

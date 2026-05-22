@@ -246,12 +246,15 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   ) async {
     emit(WorkLoading());
 
-    int nextTripNumber = await _getNextTripNum(event.work.date);
+    int resolvedTripNumber = event.trip.tripNumber;
+    if (resolvedTripNumber == 0) {
+      resolvedTripNumber = await _getNextTripNum(event.work.date);
+    }
 
     Trip finalTrip = Trip(
       id: event.trip.id,
       workId: event.trip.workId,
-      tripNumber: nextTripNumber,
+      tripNumber: resolvedTripNumber,
       tractor: event.trip.tractor,
       driverName: event.trip.driverName,
       createdAt: event.trip.createdAt,

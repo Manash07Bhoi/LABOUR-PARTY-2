@@ -121,20 +121,10 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
       final workBloc = context.read<WorkBloc>();
       final state = workBloc.state;
 
-      int nextTripNum = 1;
       Work? existingWork;
 
       if (state is DashboardLoaded) {
         existingWork = state.currentWork;
-        if (_session == 'Morning') {
-          nextTripNum = state.morningTripCount + 1;
-        } else {
-          if (state.morningTripCount > 0) {
-            nextTripNum = state.morningTripCount + state.eveningTripCount + 1;
-          } else {
-            nextTripNum = state.eveningTripCount + 1;
-          }
-        }
       }
 
       final workId = existingWork?.id ?? _uuid.v4();
@@ -153,7 +143,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
       final newTrip = Trip(
         id: tripId,
         workId: workId,
-        tripNumber: nextTripNum,
+        tripNumber: 0, // Assigned properly inside BLoC via UseCase
         tractor: _tractorController.text,
         driverName: _driverController.text,
         createdAt: DateTime.now(),

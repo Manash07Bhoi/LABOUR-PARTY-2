@@ -73,7 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/branding/app_icon_48.png', width: 32, height: 32),
+            Image.asset('assets/branding/app_icon_192.png', width: 32, height: 32),
             const SizedBox(width: 8),
             const Text(
               'Labour Party',

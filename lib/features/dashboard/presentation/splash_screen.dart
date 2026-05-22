@@ -27,10 +27,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.agriculture,
-              size: 80,
-              color: AppTheme.primaryColor,
+            Image.asset(
+              'assets/branding/app_icon_master.png',
+              width: 120,
+              height: 120,
             ).animate().fade().scale(duration: 500.ms),
             const SizedBox(height: 24),
             const Text(

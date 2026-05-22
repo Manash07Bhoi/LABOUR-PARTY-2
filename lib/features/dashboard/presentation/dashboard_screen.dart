@@ -70,12 +70,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.agriculture, color: AppTheme.primaryColor),
-            SizedBox(width: 8),
-            Text(
+            Image.asset('assets/branding/app_icon_48.png', width: 32, height: 32),
+            const SizedBox(width: 8),
+            const Text(
               'Labour Party',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
+import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 import 'package:labour_party/features/work/domain/entities/work.dart';
 
 abstract class WorkState extends Equatable {
@@ -38,6 +39,14 @@ class DashboardLoaded extends WorkState {
     eveningTripCount,
     totalTrips,
   ];
+}
+
+class TripDetailsLoaded extends WorkState {
+  final List<TripLabour> labours;
+  const TripDetailsLoaded(this.labours);
+
+  @override
+  List<Object?> get props => [labours];
 }
 
 class WorkEmpty extends WorkState {

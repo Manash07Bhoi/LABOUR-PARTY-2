@@ -35,6 +35,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     on<RemoveLatestTripEvent>(_onRemoveLatestTrip);
     on<DeleteSpecificTripEvent>(_onDeleteSpecificTrip);
     on<SaveFullWorkTripEvent>(_onSaveFullWorkTrip);
+    on<LoadTripDetailsEvent>(_onLoadTripDetails);
   }
 
   Future<int> _getNextTripNum(String date) async {
@@ -238,6 +239,18 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
         }
       }
     }
+  }
+
+  Future<void> _onLoadTripDetails(
+    LoadTripDetailsEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    emit(WorkLoading());
+    final result = await getLaboursForTrip(event.tripId);
+    result.fold(
+      (failure) => emit(const WorkError('Failed to load trip details')),
+      (labours) => emit(TripDetailsLoaded(labours)),
+    );
   }
 
   Future<void> _onSaveFullWorkTrip(

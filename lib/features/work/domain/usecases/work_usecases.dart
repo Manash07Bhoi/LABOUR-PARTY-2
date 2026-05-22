@@ -77,3 +77,43 @@ class SaveTripLabourUseCase {
   Future<Either<Failure, void>> call(TripLabour tripLabour) =>
       repository.saveTripLabour(tripLabour);
 }
+
+class CalculateNextTripNumberUseCase {
+  final WorkRepository repository;
+
+  CalculateNextTripNumberUseCase(this.repository);
+
+  Future<Either<Failure, int>> call(String date) async {
+    int highestMorningTrip = 0;
+    int highestEveningTrip = 0;
+
+    final morningWorkResult = await repository.getWorkByDateAndSession(date, 'Morning');
+    await morningWorkResult.fold((f) async {}, (w) async {
+      final tResult = await repository.getTripsForWork(w.id);
+      tResult.fold((f) {}, (trips) {
+        if (trips.isNotEmpty) {
+          highestMorningTrip = trips
+              .map((t) => t.tripNumber)
+              .reduce((a, b) => a > b ? a : b);
+        }
+      });
+    });
+
+    final eveningWorkResult = await repository.getWorkByDateAndSession(date, 'Evening');
+    await eveningWorkResult.fold((f) async {}, (w) async {
+      final tResult = await repository.getTripsForWork(w.id);
+      tResult.fold((f) {}, (trips) {
+        if (trips.isNotEmpty) {
+          highestEveningTrip = trips
+              .map((t) => t.tripNumber)
+              .reduce((a, b) => a > b ? a : b);
+        }
+      });
+    });
+
+    return Right((highestEveningTrip > highestMorningTrip
+            ? highestEveningTrip
+            : highestMorningTrip) +
+        1);
+  }
+}

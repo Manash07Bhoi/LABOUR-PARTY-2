@@ -24,6 +24,7 @@ Future<void> init() async {
       saveTrip: sl(),
       deleteTrip: sl(),
       getLaboursForTrip: sl(),
+      calculateNextTripNumber: sl(),
       saveTripLabour: sl(),
     ),
   );
@@ -40,6 +41,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SaveLabourUseCase(sl()));
   sl.registerLazySingleton(() => GetLaboursForTripUseCase(sl()));
   sl.registerLazySingleton(() => SaveTripLabourUseCase(sl()));
+  sl.registerLazySingleton(() => CalculateNextTripNumberUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<WorkRepository>(

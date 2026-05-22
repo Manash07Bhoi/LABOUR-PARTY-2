@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:labour_party/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:labour_party/features/dashboard/presentation/splash_screen.dart';
+import 'package:labour_party/features/details/presentation/trip_details_screen.dart';
+import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/details/presentation/details_screen.dart';
 import 'package:labour_party/features/settings/presentation/settings_screen.dart';
 import 'package:labour_party/features/work/presentation/screens/add_edit_work_screen.dart';
@@ -12,8 +15,12 @@ final GlobalKey<NavigatorState> _shellNavigatorKey =
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/dashboard',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashScreen(),
+    ),
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
       builder: (context, state, child) {
@@ -33,6 +40,10 @@ final GoRouter appRouter = GoRouter(
           builder: (context, state) => const SettingsScreen(),
         ),
       ],
+    ),
+    GoRoute(
+      path: '/trip-details',
+      builder: (context, state) => TripDetailsScreen(trip: state.extra as Trip),
     ),
     GoRoute(
       path: '/add-edit-work',

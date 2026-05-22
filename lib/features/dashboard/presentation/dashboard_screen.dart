@@ -36,39 +36,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     context.read<WorkBloc>().add(
       AddQuickTripEvent(date: _currentDate, session: _currentSession),
     );
-    context.go('/add-edit-work', extra: {'isNew': true});
   }
 
   void _onRemoveLatestTrip() {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.darkSurfaceColor,
-        title: const Text('Remove Trip', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Are you sure you want to remove the latest trip?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white70),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppTheme.darkSurfaceColor,
+          title: const Text('Delete Trip?', style: TextStyle(color: Colors.white)),
+          content: const Text('Are you sure you want to remove the latest trip?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
             ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              context.read<WorkBloc>().add(const RemoveLatestTripEvent());
-            },
-            child: const Text(
-              'Remove',
-              style: TextStyle(color: AppTheme.errorColor),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+              onPressed: () {
+                context.read<WorkBloc>().add(const RemoveLatestTripEvent());
+                Navigator.of(context).pop();
+              },
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -77,8 +71,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.agriculture, color: AppTheme.primaryColor),
+            Image.asset('assets/branding/app_icon_48.png', width: 32, height: 32),
             const SizedBox(width: 8),
             const Text(
               'Labour Party',
@@ -107,16 +102,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton:
-          FloatingActionButton.extended(
-                onPressed: () {
-                  context.go('/add-edit-work', extra: {'isNew': true});
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Add Work'),
-              )
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .shimmer(duration: 2.seconds, color: Colors.white24),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          context.push('/add-edit-work', extra: {'isNew': true});
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Add Work'),
+      )
+      .animate(onPlay: (controller) => controller.repeat(reverse: true))
+      .shimmer(duration: 2.seconds, color: Colors.white24),
     );
   }
 
@@ -144,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       message: 'No work added today',
       ctaText: 'Add First Trip',
       icon: Icons.work_outline,
-      onCtaPressed: () => context.go('/add-edit-work', extra: {'isNew': true}),
+      onCtaPressed: () => context.push('/add-edit-work', extra: {'isNew': true}),
     ).animate().fade().scale();
   }
 
@@ -157,7 +151,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       },
       child: ListView(
         padding: const EdgeInsets.all(16),
-        physics: const AlwaysScrollableScrollPhysics(),
         children: [
           _buildSummaryCard(state).animate().fade().slideY(begin: 0.2, end: 0),
           const SizedBox(height: 24),
@@ -183,7 +176,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildSummaryCard(DashboardLoaded state) {
     return GlassCard(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -191,46 +183,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 '$_currentDate • $_currentSession',
                 style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              if (state.currentWork != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accentColor.withAlpha(51),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    state.currentWork!.workType,
-                    style: const TextStyle(
-                      color: AppTheme.accentColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.successColor.withAlpha(51),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${state.totalTrips} Total Trips',
+                  style: const TextStyle(
+                    color: AppTheme.successColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
+              ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem(
-                'Total\nTrips',
-                '${state.totalTrips}',
-                Icons.local_shipping_outlined,
-              ),
-              _buildStatItem(
-                'Total\nLabour',
-                '${state.totalLabourCount}',
-                Icons.people_outline,
-              ),
               _buildStatItem(
                 'Morning\nTrips',
                 '${state.morningTripCount}',
@@ -292,9 +269,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 'Current Trip',
                 style: TextStyle(color: Colors.white54, fontSize: 14),
               ),
-              const SizedBox(height: 4),
               Text(
-                '${state.currentTrips.length}',
+                '${state.totalTrips}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 36,
@@ -304,12 +280,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           IconButton(
-                onPressed: _onAddQuickTrip,
-                icon: const Icon(Icons.add_circle, size: 40),
-                color: AppTheme.successColor,
-              )
-              .animate(onPlay: (controller) => controller.repeat(reverse: true))
-              .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1)),
+            onPressed: _onAddQuickTrip,
+            icon: const Icon(Icons.add_circle, size: 48),
+            color: AppTheme.primaryColor,
+          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+           .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 1.seconds),
         ],
       ),
     );
@@ -318,122 +293,124 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildRecentTripsList(DashboardLoaded state) {
     if (state.currentTrips.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
+        padding: EdgeInsets.all(16.0),
         child: Center(
           child: Text(
-            'No trips recorded yet.',
+            'No trips in current session',
             style: TextStyle(color: Colors.white54),
           ),
         ),
       );
     }
-    return ListView.separated(
+
+    return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: state.currentTrips.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final trip = state.currentTrips[state.currentTrips.length - 1 - index];
-        return Dismissible(
-          key: ValueKey(trip.id),
-          direction: DismissDirection.endToStart,
-          background: Container(
-            alignment: Alignment.centerRight,
-            padding: const EdgeInsets.only(right: 20),
-            decoration: BoxDecoration(
-              color: AppTheme.errorColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.delete, color: Colors.white),
-          ),
-          confirmDismiss: (direction) async {
-            return await showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: AppTheme.darkSurfaceColor,
-                title: const Text(
-                  'Delete Trip',
-                  style: TextStyle(color: Colors.white),
-                ),
-                content: const Text(
-                  'Are you sure you want to delete this trip?',
-                  style: TextStyle(color: Colors.white70),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text(
-                      'Delete',
-                      style: TextStyle(color: AppTheme.errorColor),
-                    ),
-                  ),
-                ],
+        final trip = state.currentTrips[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Dismissible(
+            key: Key(trip.id),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20.0),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor,
+                borderRadius: BorderRadius.circular(16),
               ),
-            );
-          },
-          onDismissed: (direction) {
-            context.read<WorkBloc>().add(const RemoveLatestTripEvent());
-          },
-          child: GlassCard(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withAlpha(51),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '#${trip.tripNumber}',
-                      style: const TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+              child: const Icon(Icons.delete, color: Colors.white),
+            ),
+            confirmDismiss: (direction) async {
+              // Same exact prompt as details screen swipe deletion
+              bool confirm = false;
+              await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    backgroundColor: AppTheme.darkSurfaceColor,
+                    title: const Text('Delete Trip?', style: TextStyle(color: Colors.white)),
+                    content: Text('Are you sure you want to delete Trip #${trip.tripNumber}?'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        trip.tractor.isNotEmpty
-                            ? trip.tractor
-                            : 'Unknown Tractor',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Driver: ${trip.driverName.isNotEmpty ? trip.driverName : 'Unknown'}',
-                        style: const TextStyle(
-                          color: Colors.white54,
-                          fontSize: 14,
-                        ),
+                      TextButton(
+                        child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+                        onPressed: () {
+                          confirm = true;
+                          context.read<WorkBloc>().add(DeleteSpecificTripEvent(trip.id));
+                          Navigator.of(context).pop();
+                        },
                       ),
                     ],
-                  ),
+                  );
+                },
+              );
+              return confirm;
+            },
+            child: GestureDetector(
+              onTap: () => context.push('/trip-details', extra: trip),
+              child: GlassCard(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withAlpha(51),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '#${trip.tripNumber}',
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            trip.tractor.isNotEmpty
+                                ? trip.tractor
+                                : 'Unknown Tractor',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Driver: ${trip.driverName.isNotEmpty ? trip.driverName : 'Unknown'}',
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      DateTimeUtils.formatTime(trip.createdAt),
+                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    ),
+                  ],
                 ),
-                Text(
-                  DateTimeUtils.formatTime(trip.createdAt),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
-                ),
-              ],
+              ),
             ),
           ),
         );

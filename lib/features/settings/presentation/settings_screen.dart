@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -18,6 +20,71 @@ class SettingsScreen extends StatefulWidget {
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+Future<Map<String, dynamic>> _parseAndValidateBackup(String filePath) async {
+  final file = File(filePath);
+
+  if (!file.existsSync()) {
+    throw Exception("File does not exist.");
+  }
+
+  if (!filePath.toLowerCase().endsWith('.labourbackup')) {
+    throw Exception("Invalid file extension.");
+  }
+
+  final fileSize = await file.length();
+  const maxBytes = 25 * 1024 * 1024; // 25 MB
+  if (fileSize > maxBytes) {
+    throw Exception("BackupTooLarge");
+  }
+
+  Map<String, dynamic> backupData;
+  try {
+    final dynamic decoded = await file
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(json.decoder)
+        .first;
+    if (decoded is Map<String, dynamic>) {
+      backupData = decoded;
+    } else {
+      throw Exception("Invalid JSON structure.");
+    }
+  } catch (e) {
+    if (e.toString().contains("BackupTooLarge") || e.toString().contains("BackupInvalid") || e.toString().contains("UnsupportedBackupVersion")) {
+      rethrow;
+    }
+    throw Exception("BackupInvalid");
+  }
+
+  if (backupData['app'] != "Labour Party") {
+    throw Exception("BackupInvalid");
+  }
+
+  if (backupData['version'] == null || backupData['data'] == null) {
+    throw Exception("UnsupportedBackupVersion");
+  }
+
+  final data = backupData['data'];
+  if (data is! Map<String, dynamic>) {
+    throw Exception("BackupInvalid");
+  }
+
+  final worksList = data['works'] as List?;
+  final tripsList = data['trips'] as List?;
+  final laboursList = data['labours'] as List?;
+  final tripLaboursList = data['tripLabours'] as List?;
+
+  if (worksList == null || tripsList == null || laboursList == null || tripLaboursList == null) {
+    throw Exception("BackupInvalid");
+  }
+
+  if (worksList.length > 10000 || tripsList.length > 100000 || laboursList.length > 5000) {
+    throw Exception("BackupInvalid");
+  }
+
+  return backupData;
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
@@ -111,6 +178,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isLoading = false);
   }
 
+  void _showErrorDialog(String title, String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.darkSurfaceColor,
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK', style: TextStyle(color: AppTheme.primaryColor)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _restoreDatabase() async {
     setState(() => _isLoading = true);
     try {
@@ -120,26 +205,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
 
       if (result != null && result.files.single.path != null) {
-        final backupFile = File(result.files.single.path!);
-        final jsonString = await backupFile.readAsString();
+        final backupPath = result.files.single.path!;
 
         Map<String, dynamic> backupData;
         try {
-          backupData = jsonDecode(jsonString);
-        } catch (_) {
-          throw Exception("Invalid backup file format.");
-        }
-
-        if (backupData['app'] != "Labour Party" ||
-            backupData['version'] == null ||
-            backupData['data'] == null) {
-          throw Exception("Corrupted or incompatible backup file.");
+          backupData = await compute(_parseAndValidateBackup, backupPath);
+        } catch (e) {
+          setState(() => _isLoading = false);
+          final errorStr = e.toString();
+          if (errorStr.contains("BackupTooLarge")) {
+            _showErrorDialog("Backup Too Large", "Selected backup exceeds the supported size limit.\n\nMaximum: 25 MB\n\nChoose another backup file.");
+          } else if (errorStr.contains("UnsupportedBackupVersion")) {
+            _showErrorDialog("Unsupported Backup Version", "The selected backup file version is not supported.");
+          } else {
+            _showErrorDialog("Backup Invalid", "The selected backup file is corrupted or invalid.");
+          }
+          return;
         }
 
         final data = backupData['data'] as Map<String, dynamic>;
         final worksList = data['works'] as List;
         final tripsList = data['trips'] as List;
         final laboursList = data['labours'] as List;
+        final tripLaboursList = data['tripLabours'] as List;
 
         if (mounted) {
           final confirm = await showDialog<bool>(
@@ -208,75 +296,110 @@ class _SettingsScreenState extends State<SettingsScreen> {
               HiveSetup.tripLabourBox,
             );
 
-            await workBox.clear();
-            await tripBox.clear();
-            await labourBox.clear();
-            await tripLabourBox.clear();
+            // 1. Create Recovery Snapshot
+            final worksSnapshot = workBox.values.toList();
+            final tripsSnapshot = tripBox.values.toList();
+            final laboursSnapshot = labourBox.values.toList();
+            final tripLaboursSnapshot = tripLabourBox.values.toList();
 
-            for (var w in worksList) {
-              await workBox.put(
-                w['id'],
-                WorkModel(
-                  id: w['id'],
-                  date: w['date'],
-                  session: w['session'],
-                  workType: w['workType'],
-                  place: w['place'] ?? '',
-                  createdAt: DateTime.parse(w['createdAt']),
-                  updatedAt: DateTime.parse(w['updatedAt']),
-                ),
-              );
-            }
-            for (var t in tripsList) {
-              await tripBox.put(
-                t['id'],
-                TripModel(
-                  id: t['id'],
-                  workId: t['workId'],
-                  tripNumber: t['tripNumber'],
-                  tractor: t['tractor'],
-                  driverName: t['driverName'],
-                  createdAt: DateTime.parse(t['createdAt']),
-                ),
-              );
-            }
-            for (var l in laboursList) {
-              await labourBox.put(
-                l['id'],
-                LabourModel(
-                  id: l['id'],
-                  name: l['name'],
-                  phoneOptional: l['phoneOptional'],
-                  createdAt: DateTime.parse(l['createdAt']),
-                ),
-              );
-            }
-            for (var tl in data['tripLabours']) {
-              await tripLabourBox.put(
-                tl['id'],
-                TripLabourModel(
-                  id: tl['id'],
-                  tripId: tl['tripId'],
-                  labourId: tl['labourId'],
-                  isPresent: tl['isPresent'],
-                ),
-              );
-            }
+            try {
+              // 2. Clear Boxes
+              await workBox.clear();
+              await tripBox.clear();
+              await labourBox.clear();
+              await tripLabourBox.clear();
 
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Restore successful!')),
-              );
+              // 3. Apply Restore
+              for (var w in worksList) {
+                await workBox.put(
+                  w['id'],
+                  WorkModel(
+                    id: w['id'],
+                    date: w['date'],
+                    session: w['session'],
+                    workType: w['workType'],
+                    place: w['place'] ?? '',
+                    createdAt: DateTime.parse(w['createdAt']),
+                    updatedAt: DateTime.parse(w['updatedAt']),
+                  ),
+                );
+              }
+              for (var t in tripsList) {
+                await tripBox.put(
+                  t['id'],
+                  TripModel(
+                    id: t['id'],
+                    workId: t['workId'],
+                    tripNumber: t['tripNumber'],
+                    tractor: t['tractor'],
+                    driverName: t['driverName'],
+                    createdAt: DateTime.parse(t['createdAt']),
+                  ),
+                );
+              }
+              for (var l in laboursList) {
+                await labourBox.put(
+                  l['id'],
+                  LabourModel(
+                    id: l['id'],
+                    name: l['name'],
+                    phoneOptional: l['phoneOptional'],
+                    createdAt: DateTime.parse(l['createdAt']),
+                  ),
+                );
+              }
+              for (var tl in tripLaboursList) {
+                await tripLabourBox.put(
+                  tl['id'],
+                  TripLabourModel(
+                    id: tl['id'],
+                    tripId: tl['tripId'],
+                    labourId: tl['labourId'],
+                    isPresent: tl['isPresent'],
+                  ),
+                );
+              }
+
+              // 4. Verify Counts
+              if (workBox.length != worksList.length ||
+                  tripBox.length != tripsList.length ||
+                  labourBox.length != laboursList.length ||
+                  tripLabourBox.length != tripLaboursList.length) {
+                throw Exception("Restore validation failed. Row count mismatch.");
+              }
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Restore successful!')),
+                );
+              }
+            } catch (e) {
+              // 5. Rollback on Failure
+              await workBox.clear();
+              await tripBox.clear();
+              await labourBox.clear();
+              await tripLabourBox.clear();
+
+              for (var w in worksSnapshot) {
+                await workBox.put(w.id, w);
+              }
+              for (var t in tripsSnapshot) {
+                await tripBox.put(t.id, t);
+              }
+              for (var l in laboursSnapshot) {
+                await labourBox.put(l.id, l);
+              }
+              for (var tl in tripLaboursSnapshot) {
+                await tripLabourBox.put(tl.id, tl);
+              }
+
+              _showErrorDialog("Restore Failed", "An error occurred during restore. All original data has been safely rolled back.\n\nError: $e");
             }
           }
         }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Restore failed: $e')));
-      }
+      _showErrorDialog("Restore Failed", "An unexpected error occurred: $e");
     }
     setState(() => _isLoading = false);
   }

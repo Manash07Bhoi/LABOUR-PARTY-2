@@ -35,6 +35,11 @@ class MockWorkRepository implements WorkRepository {
   }
 
   @override
+  Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(List<String> tripIds) async {
+    return Right(tripLabours.where((tl) => tripIds.contains(tl.tripId)).toList());
+  }
+
+  @override
   Future<Either<Failure, List<Trip>>> getTripsForWork(String workId) async {
     return Right(trips.where((t) => t.workId == workId).toList());
   }

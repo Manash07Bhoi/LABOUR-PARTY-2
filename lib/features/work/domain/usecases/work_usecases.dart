@@ -71,6 +71,13 @@ class GetLaboursForTripUseCase {
       repository.getLaboursForTrip(tripId);
 }
 
+class GetLaboursForTripsUseCase {
+  final WorkRepository repository;
+  GetLaboursForTripsUseCase(this.repository);
+  Future<Either<Failure, List<TripLabour>>> call(List<String> tripIds) =>
+      repository.getLaboursForTrips(tripIds);
+}
+
 class SaveTripLabourUseCase {
   final WorkRepository repository;
   SaveTripLabourUseCase(this.repository);

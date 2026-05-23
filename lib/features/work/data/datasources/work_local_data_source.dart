@@ -18,6 +18,7 @@ abstract class WorkLocalDataSource {
   Future<void> saveLabour(LabourModel labour);
 
   Future<List<TripLabourModel>> getLaboursForTrip(String tripId);
+  Future<List<TripLabourModel>> getLaboursForTrips(List<String> tripIds);
   Future<void> saveTripLabour(TripLabourModel tripLabour);
   Future<void> saveTripLabours(List<TripLabourModel> tripLabours);
 }
@@ -100,6 +101,12 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
   @override
   Future<List<TripLabourModel>> getLaboursForTrip(String tripId) async {
     return tripLabourBox.values.where((tl) => tl.tripId == tripId).toList();
+  }
+
+  @override
+  Future<List<TripLabourModel>> getLaboursForTrips(List<String> tripIds) async {
+    final tripIdSet = tripIds.toSet();
+    return tripLabourBox.values.where((tl) => tripIdSet.contains(tl.tripId)).toList();
   }
 
   @override

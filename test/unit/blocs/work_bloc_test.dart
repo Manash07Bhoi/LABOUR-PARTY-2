@@ -22,6 +22,7 @@ void main() {
       saveTrip: SaveTripUseCase(mockRepo),
       deleteTrip: DeleteTripUseCase(mockRepo),
       getLaboursForTrip: GetLaboursForTripUseCase(mockRepo),
+      getLaboursForTrips: GetLaboursForTripsUseCase(mockRepo),
       saveTripLabour: SaveTripLabourUseCase(mockRepo),
       saveTripLabours: SaveTripLaboursUseCase(mockRepo),
       calculateNextTripNumber: CalculateNextTripNumberUseCase(mockRepo),

@@ -78,6 +78,13 @@ class SaveTripLabourUseCase {
       repository.saveTripLabour(tripLabour);
 }
 
+class SaveTripLaboursUseCase {
+  final WorkRepository repository;
+  SaveTripLaboursUseCase(this.repository);
+  Future<Either<Failure, void>> call(List<TripLabour> tripLabours) =>
+      repository.saveTripLabours(tripLabours);
+}
+
 class CalculateNextTripNumberUseCase {
   final WorkRepository repository;
 

@@ -76,6 +76,15 @@ class MockWorkRepository implements WorkRepository {
   }
 
   @override
+  Future<Either<Failure, void>> saveTripLabours(List<TripLabour> newTripLabours) async {
+    for (var tl in newTripLabours) {
+      tripLabours.removeWhere((existing) => existing.id == tl.id);
+      tripLabours.add(tl);
+    }
+    return const Right(null);
+  }
+
+  @override
   Future<Either<Failure, void>> saveWork(Work work) async {
     works.removeWhere((w) => w.id == work.id);
     works.add(work);

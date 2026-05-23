@@ -19,6 +19,7 @@ abstract class WorkLocalDataSource {
 
   Future<List<TripLabourModel>> getLaboursForTrip(String tripId);
   Future<void> saveTripLabour(TripLabourModel tripLabour);
+  Future<void> saveTripLabours(List<TripLabourModel> tripLabours);
 }
 
 class WorkLocalDataSourceImpl implements WorkLocalDataSource {
@@ -104,5 +105,13 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
   @override
   Future<void> saveTripLabour(TripLabourModel tripLabour) async {
     await tripLabourBox.put(tripLabour.id, tripLabour);
+  }
+
+  @override
+  Future<void> saveTripLabours(List<TripLabourModel> tripLabours) async {
+    final Map<dynamic, TripLabourModel> entries = {
+      for (var tl in tripLabours) tl.id: tl
+    };
+    await tripLabourBox.putAll(entries);
   }
 }

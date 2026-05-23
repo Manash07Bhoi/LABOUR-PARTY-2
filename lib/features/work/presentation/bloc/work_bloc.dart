@@ -16,6 +16,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   final DeleteTripUseCase deleteTrip;
   final GetLaboursForTripUseCase getLaboursForTrip;
   final SaveTripLabourUseCase saveTripLabour;
+  final SaveTripLaboursUseCase saveTripLabours;
   final CalculateNextTripNumberUseCase calculateNextTripNumber;
   final Uuid uuid = const Uuid();
 
@@ -28,6 +29,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     required this.deleteTrip,
     required this.getLaboursForTrip,
     required this.saveTripLabour,
+    required this.saveTripLabours,
     required this.calculateNextTripNumber,
   }) : super(WorkInitial()) {
     on<LoadDashboardDataEvent>(_onLoadDashboardData);
@@ -185,15 +187,14 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
 
       await saveTrip(newTrip);
 
-      for (var l in copiedLabours) {
-        await saveTripLabour(
-          TripLabour(
-            id: l.id,
-            tripId: newTrip.id,
-            labourId: l.labourId,
-            isPresent: l.isPresent,
-          ),
-        );
+      if (copiedLabours.isNotEmpty) {
+        final newTripLabours = copiedLabours.map((l) => TripLabour(
+          id: l.id,
+          tripId: newTrip.id,
+          labourId: l.labourId,
+          isPresent: l.isPresent,
+        )).toList();
+        await saveTripLabours(newTripLabours);
       }
 
       add(LoadDashboardDataEvent(event.date, event.session));
@@ -275,8 +276,8 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
 
     await saveWork(event.work);
     await saveTrip(finalTrip);
-    for (var tl in event.tripLabours) {
-      await saveTripLabour(tl);
+    if (event.tripLabours.isNotEmpty) {
+      await saveTripLabours(event.tripLabours);
     }
     emit(WorkActionSuccess());
     add(LoadDashboardDataEvent(event.work.date, event.work.session));

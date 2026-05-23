@@ -230,4 +230,21 @@ class WorkRepositoryImpl implements WorkRepository {
       return Left(DatabaseFailure('Failed to save trip labour: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> saveTripLabours(List<TripLabour> tripLabours) async {
+    try {
+      final models = tripLabours.map((tl) => TripLabourModel(
+        id: tl.id,
+        tripId: tl.tripId,
+        labourId: tl.labourId,
+        isPresent: tl.isPresent,
+      )).toList();
+
+      await localDataSource.saveTripLabours(models);
+      return const Right(null);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to save trip labours: $e'));
+    }
+  }
 }

@@ -131,11 +131,26 @@ class _DetailsScreenState extends State<DetailsScreen> {
             return const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryColor),
             );
+          } else if (state is WorkEmpty) {
+            return Center(
+              child: Text(
+                state.message,
+                style: const TextStyle(color: Colors.white54),
+              ),
+            );
+          } else if (state is WorkError) {
+            return Center(
+              child: Text(
+                state.message,
+                style: const TextStyle(color: AppTheme.errorColor),
+              ),
+            );
           }
-          return const Center(
+
+          return Center(
             child: Text(
-              'No data found.',
-              style: TextStyle(color: Colors.white54),
+              'Unexpected state: ${state.runtimeType}',
+              style: const TextStyle(color: AppTheme.errorColor),
             ),
           );
         },

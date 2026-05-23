@@ -33,12 +33,12 @@ void main() {
 
   test('WorkBloc - Edit Historical Trip Preserves Original Number', () async {
     final work = Work(id: 'w1', date: '01 Jan 2024', session: 'Morning', workType: 'Sand', place: '', createdAt: DateTime.now(), updatedAt: DateTime.now());
-    final trip = Trip(id: 't1', workId: 'w1', tripNumber: 2, tractor: '', driverName: '', createdAt: DateTime.now());
+    final trip = Trip(id: 't1', workId: 'w1', tripNumber: 2, tractor: '', driverName: '', createdAt: DateTime.now()); 
     await mockRepo.saveWork(work);
-
+    
     // Send event
     workBloc.add(SaveFullWorkTripEvent(work: work, trip: trip, tripLabours: const []));
-
+    
     // Await state updates
     await expectLater(
       workBloc.stream,

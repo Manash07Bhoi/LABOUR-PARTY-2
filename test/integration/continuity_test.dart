@@ -34,22 +34,22 @@ void main() {
     await mockRepo.saveTrip(Trip(id: 't1', workId: 'm1', tripNumber: 1, tractor: '', driverName: '', createdAt: DateTime.now()));
     await mockRepo.saveTrip(Trip(id: 't2', workId: 'm1', tripNumber: 2, tractor: '', driverName: '', createdAt: DateTime.now()));
 
-    // Load an evening state
+    // Load an evening state 
     workBloc.add(const LoadDashboardDataEvent('01 Jan 2024', 'Evening'));
     await Future.delayed(const Duration(milliseconds: 100)); // allow emit
 
     // When evening is requested, the current work is NULL, but totalTrips = 2 (from morning).
     // Therefore it emits DashboardLoaded with empty currentTrips, not WorkEmpty.
-    expect(workBloc.state, isA<DashboardLoaded>());
+    expect(workBloc.state, isA<DashboardLoaded>()); 
 
     // Add quick trip simulates the + button creation
     workBloc.add(const AddQuickTripEvent(date: '01 Jan 2024', session: 'Evening'));
     await Future.delayed(const Duration(milliseconds: 100));
-
+    
     // Check repository directly for final continuity
     final finalTrips = mockRepo.trips;
     expect(finalTrips.length, 3);
-
+    
     final lastTrip = finalTrips.last;
     expect(lastTrip.sessionWorkId(workMorn.id), isFalse); // Different Work IDs
     expect(lastTrip.tripNumber, 3); // Morning 2 + 1 = 3 Continuity verified natively

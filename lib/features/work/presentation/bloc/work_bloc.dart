@@ -258,12 +258,10 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     Emitter<WorkState> emit,
   ) async {
     emit(WorkLoading());
-
     int resolvedTripNumber = event.trip.tripNumber;
     if (resolvedTripNumber == 0) {
       resolvedTripNumber = await _getNextTripNum(event.work.date);
     }
-
     Trip finalTrip = Trip(
       id: event.trip.id,
       workId: event.trip.workId,

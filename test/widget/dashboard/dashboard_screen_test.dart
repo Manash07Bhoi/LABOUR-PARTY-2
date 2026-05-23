@@ -38,7 +38,7 @@ void main() {
     await tester.pump(const Duration(seconds: 1)); // Work Empty animation resolution
 
     expect(find.text('No work added today'), findsOneWidget);
-
+    
     workBloc.close();
   });
 }

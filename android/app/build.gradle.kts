@@ -5,6 +5,9 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
 android {
     namespace = "com.roshan.labourparty"
     compileSdk = flutter.compileSdkVersion
@@ -19,6 +22,31 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    val keystorePropertiesFile = rootProject.file("key.properties")
+    val keystoreProperties = Properties()
+    val keystorePropertiesExist = keystorePropertiesFile.exists()
+
+    if (keystorePropertiesExist) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    } else {
+        gradle.taskGraph.whenReady {
+            if (allTasks.any { it.name.contains("Release", ignoreCase = true) }) {
+                throw GradleException("Release signing configuration missing.\n\nExpected:\nandroid/key.properties\n\nSee:\ndocs/RELEASE.md")
+            }
+        }
+    }
+
+    signingConfigs {
+        if (keystorePropertiesExist) {
+            create("release") {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.roshan.labourparty"
         minSdk = 24
@@ -29,7 +57,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            if (keystorePropertiesExist) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

@@ -10,15 +10,27 @@ import 'dart:io';
 void main() {
   Future<void> runBenchmarkForSize(int numTrips, int numLaboursPerTrip) async {
     // ignore: avoid_print
-    print('\n--- Benchmark for ${numTrips * numLaboursPerTrip} TripLabours ($numTrips trips) ---');
+    print(
+      '\n--- Benchmark for ${numTrips * numLaboursPerTrip} TripLabours ($numTrips trips) ---',
+    );
 
-    final tempDir = await Directory.systemTemp.createTemp('hive_bench_$numTrips');
+    final tempDir = await Directory.systemTemp.createTemp(
+      'hive_bench_$numTrips',
+    );
     Hive.init(tempDir.path);
 
-    if (!Hive.isAdapterRegistered(0)) { Hive.registerAdapter(WorkModelAdapter()); }
-    if (!Hive.isAdapterRegistered(1)) { Hive.registerAdapter(TripModelAdapter()); }
-    if (!Hive.isAdapterRegistered(2)) { Hive.registerAdapter(LabourModelAdapter()); }
-    if (!Hive.isAdapterRegistered(3)) { Hive.registerAdapter(TripLabourModelAdapter()); }
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(WorkModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(TripModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(LabourModelAdapter());
+    }
+    if (!Hive.isAdapterRegistered(3)) {
+      Hive.registerAdapter(TripLabourModelAdapter());
+    }
 
     final startupStopwatch = Stopwatch()..start();
     final workBox = await Hive.openBox<WorkModel>('works');
@@ -65,7 +77,9 @@ void main() {
     final labours = await dataSource.getLaboursForTrip(targetTripId);
     lookupStopwatch.stop();
     // ignore: avoid_print
-    print('Lookup for 1 trip ($numLaboursPerTrip labours): ${lookupStopwatch.elapsedMilliseconds} ms');
+    print(
+      'Lookup for 1 trip ($numLaboursPerTrip labours): ${lookupStopwatch.elapsedMilliseconds} ms',
+    );
     expect(labours.length, numLaboursPerTrip);
 
     // 2. Measure Delete
@@ -73,7 +87,9 @@ void main() {
     await dataSource.deleteTrip(targetTripId);
     deleteStopwatch.stop();
     // ignore: avoid_print
-    print('Delete 1 trip ($numLaboursPerTrip labours): ${deleteStopwatch.elapsedMilliseconds} ms');
+    print(
+      'Delete 1 trip ($numLaboursPerTrip labours): ${deleteStopwatch.elapsedMilliseconds} ms',
+    );
 
     // Verify deletion
     final remainingLabours = await dataSource.getLaboursForTrip(targetTripId);
@@ -91,20 +107,23 @@ void main() {
     await tempDir.delete(recursive: true);
   }
 
-  test('Performance benchmarks across scales', () async {
-    const numLaboursPerTrip = 20;
+  test(
+    'Performance benchmarks across scales',
+    () async {
+      const numLaboursPerTrip = 20;
 
-    // 10k items (500 trips)
-    await runBenchmarkForSize(500, numLaboursPerTrip);
+      // 10k items (500 trips)
+      await runBenchmarkForSize(500, numLaboursPerTrip);
 
-    // 100k items (5000 trips)
-    await runBenchmarkForSize(5000, numLaboursPerTrip);
+      // 100k items (5000 trips)
+      await runBenchmarkForSize(5000, numLaboursPerTrip);
 
-    // 500k items (25000 trips)
-    await runBenchmarkForSize(25000, numLaboursPerTrip);
+      // 500k items (25000 trips)
+      await runBenchmarkForSize(25000, numLaboursPerTrip);
 
-    // 1M items (50000 trips)
-    await runBenchmarkForSize(50000, numLaboursPerTrip);
-
-  }, timeout: const Timeout(Duration(minutes: 10)));
+      // 1M items (50000 trips)
+      await runBenchmarkForSize(50000, numLaboursPerTrip);
+    },
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
 }

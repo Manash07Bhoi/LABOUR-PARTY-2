@@ -30,13 +30,21 @@ class MockWorkRepository implements WorkRepository {
   }
 
   @override
-  Future<Either<Failure, List<TripLabour>>> getLaboursForTrip(String tripId) async {
+  Future<Either<Failure, List<TripLabour>>> getLaboursForTrip(
+    String tripId,
+  ) async {
     return Right(tripLabours.where((tl) => tl.tripId == tripId).toList());
   }
 
   @override
-  Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(List<String> tripIds) async {
-    return Right(tripLabours.where((tl) => tripIds.contains(tl.tripId)).toList());
+  Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(
+    List<String> tripIds,
+  ) async {
+
+    return Right(
+      tripLabours.where((tl) => tripIds.contains(tl.tripId)).toList(),
+    );
+
   }
 
   @override
@@ -45,9 +53,14 @@ class MockWorkRepository implements WorkRepository {
   }
 
   @override
-  Future<Either<Failure, Work>> getWorkByDateAndSession(String date, String session) async {
+  Future<Either<Failure, Work>> getWorkByDateAndSession(
+    String date,
+    String session,
+  ) async {
     try {
-      final work = works.firstWhere((w) => w.date == date && w.session == session);
+      final work = works.firstWhere(
+        (w) => w.date == date && w.session == session,
+      );
       return Right(work);
     } catch (_) {
       return const Left(DatabaseFailure('Work not found'));
@@ -81,7 +94,9 @@ class MockWorkRepository implements WorkRepository {
   }
 
   @override
-  Future<Either<Failure, void>> saveTripLabours(List<TripLabour> newTripLabours) async {
+  Future<Either<Failure, void>> saveTripLabours(
+    List<TripLabour> newTripLabours,
+  ) async {
     for (var tl in newTripLabours) {
       tripLabours.removeWhere((existing) => existing.id == tl.id);
       tripLabours.add(tl);

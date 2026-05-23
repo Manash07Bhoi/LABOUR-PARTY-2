@@ -29,16 +29,13 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
       appBar: AppBar(title: Text('Trip #${widget.trip.tripNumber}')),
       body: BlocBuilder<WorkBloc, WorkState>(
         builder: (context, state) {
-          if (state is WorkLoading || state is WorkInitial) {
-            return const Center(
+          return switch (state) {
+            WorkLoading() || WorkInitial() => const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryColor),
-            );
-          }
 
-          if (state is TripDetailsLoaded) {
-            final labours = state.labours;
+            ),
+            TripDetailsLoaded(labours: final labours) => ListView(
 
-            return ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 GlassCard(
@@ -120,19 +117,24 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                     );
                   }),
               ],
-            );
-          }
 
-          if (state is WorkError) {
-            return Center(
+            ),
+            WorkError(message: final message) => Center(
+
               child: Text(
-                state.message,
+                message,
                 style: const TextStyle(color: AppTheme.errorColor),
               ),
-            );
-          }
 
-          return const SizedBox.shrink();
+            ),
+            WorkEmpty() || DashboardLoaded() || WorkActionSuccess() => const Center(
+              child: Text(
+                'Unexpected state in TripDetails',
+                style: TextStyle(color: AppTheme.errorColor),
+              ),
+            ),
+          };
+
         },
       ),
     );

@@ -34,7 +34,23 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
     required this.tripBox,
     required this.labourBox,
     required this.tripLabourBox,
-  });
+  }) {
+    _migrateLegacyTripLabours();
+  }
+
+  void _migrateLegacyTripLabours() {
+    final legacyKeys = tripLabourBox.keys.where((k) => !k.toString().contains('_')).toList();
+    if (legacyKeys.isEmpty) return;
+
+    for (var k in legacyKeys) {
+      final tl = tripLabourBox.get(k);
+      if (tl != null) {
+        final newKey = '${tl.tripId}_${tl.id}';
+        tripLabourBox.put(newKey, tl);
+        tripLabourBox.delete(k);
+      }
+    }
+  }
 
   @override
   Future<List<WorkModel>> getWorks() async {
@@ -81,11 +97,16 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
   @override
   Future<void> deleteTrip(String tripId) async {
     await tripBox.delete(tripId);
-    final tripLaboursToDelete = tripLabourBox.values
-        .where((tl) => tl.tripId == tripId)
-        .map((tl) => tl.id)
+
+    // Performance optimization: Option A - direct key access
+    // Instead of scanning all values (O(N)), we scan keys using a prefix strategy.
+    // Keys are stored in the format `${tripId}_${tripLabourId}`
+    final prefix = '${tripId}_';
+    final keysToDelete = tripLabourBox.keys
+        .where((k) => k.toString().startsWith(prefix))
         .toList();
-    await tripLabourBox.deleteAll(tripLaboursToDelete);
+
+    await tripLabourBox.deleteAll(keysToDelete);
   }
 
   @override
@@ -100,7 +121,19 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
 
   @override
   Future<List<TripLabourModel>> getLaboursForTrip(String tripId) async {
-    return tripLabourBox.values.where((tl) => tl.tripId == tripId).toList();
+    // Prefix scan for fast retrieval
+    final prefix = '${tripId}_';
+    final matchingKeys = tripLabourBox.keys.where(
+      (k) => k.toString().startsWith(prefix),
+    );
+    final List<TripLabourModel> results = [];
+
+    for (final key in matchingKeys) {
+      final val = tripLabourBox.get(key);
+      if (val != null) results.add(val);
+    }
+
+    return results;
   }
 
   @override
@@ -111,7 +144,16 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
 
   @override
   Future<void> saveTripLabour(TripLabourModel tripLabour) async {
-    await tripLabourBox.put(tripLabour.id, tripLabour);
+    // Store using composite key strategy: tripId_id
+    final compositeKey = '${tripLabour.tripId}_${tripLabour.id}';
+
+    // Handle potential duplicate keys from legacy format.
+    // If it exists under the old key, remove it first to migrate it to the composite key.
+    if (tripLabourBox.containsKey(tripLabour.id)) {
+      await tripLabourBox.delete(tripLabour.id);
+    }
+
+    await tripLabourBox.put(compositeKey, tripLabour);
   }
 
   @override

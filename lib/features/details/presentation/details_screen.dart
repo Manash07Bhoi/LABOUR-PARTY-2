@@ -34,17 +34,28 @@ class _DetailsScreenState extends State<DetailsScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppTheme.darkSurfaceColor,
-          title: const Text('Delete Trip?', style: TextStyle(color: Colors.white)),
-          content: Text('Are you sure you want to delete Trip #${trip.tripNumber}?'),
+          title: const Text(
+            'Delete Trip?',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Are you sure you want to delete Trip #${trip.tripNumber}?',
+          ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppTheme.errorColor),
+              ),
               onPressed: () {
                 context.read<WorkBloc>().add(DeleteSpecificTripEvent(trip.id));
                 Navigator.of(context).pop();
@@ -96,7 +107,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           if (state is DashboardLoaded) {
             final filteredTrips = state.currentTrips.where((trip) {
               return trip.driverName.toLowerCase().contains(_searchQuery) ||
-                     trip.tractor.toLowerCase().contains(_searchQuery);
+                  trip.tractor.toLowerCase().contains(_searchQuery);
             }).toList();
 
             if (filteredTrips.isEmpty) {
@@ -263,7 +274,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Icon(Icons.chevron_right, color: Colors.white54),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: Colors.white54,
+                          ),
                         ],
                       ),
                     ],

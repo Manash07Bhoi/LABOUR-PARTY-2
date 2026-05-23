@@ -17,6 +17,13 @@ class LoadDashboardDataEvent extends WorkEvent {
   List<Object?> get props => [date, session];
 }
 
+class LoadTripDetailsEvent extends WorkEvent {
+  final String tripId;
+  const LoadTripDetailsEvent(this.tripId);
+  @override
+  List<Object?> get props => [tripId];
+}
+
 class AddQuickTripEvent extends WorkEvent {
   final String date;
   final String session;
@@ -27,6 +34,13 @@ class AddQuickTripEvent extends WorkEvent {
 
 class RemoveLatestTripEvent extends WorkEvent {
   const RemoveLatestTripEvent();
+}
+
+class DeleteSpecificTripEvent extends WorkEvent {
+  final String tripId;
+  const DeleteSpecificTripEvent(this.tripId);
+  @override
+  List<Object?> get props => [tripId];
 }
 
 class SaveFullWorkTripEvent extends WorkEvent {

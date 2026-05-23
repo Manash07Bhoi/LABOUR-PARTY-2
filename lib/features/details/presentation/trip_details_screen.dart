@@ -26,14 +26,16 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Trip #${widget.trip.tripNumber}'),
-      ),
+      appBar: AppBar(title: Text('Trip #${widget.trip.tripNumber}')),
       body: BlocBuilder<WorkBloc, WorkState>(
         builder: (context, state) {
           if (state is WorkLoading || state is WorkInitial) {
-            return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
-          } else if (state is TripDetailsLoaded) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor),
+            );
+          }
+
+          if (state is TripDetailsLoaded) {
             final labours = state.labours;
 
             return ListView(
@@ -43,21 +45,41 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Trip Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      const Text(
+                        'Trip Info',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       _buildInfoRow('Tractor', widget.trip.tractor),
                       const SizedBox(height: 8),
                       _buildInfoRow('Driver', widget.trip.driverName),
                       const SizedBox(height: 8),
-                      _buildInfoRow('Time', DateTimeUtils.formatTime(widget.trip.createdAt)),
+                      _buildInfoRow(
+                        'Time',
+                        DateTimeUtils.formatTime(widget.trip.createdAt),
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('Labour Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                const Text(
+                  'Labour Details',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 if (labours.isEmpty)
-                  const Text('No labours assigned to this trip', style: TextStyle(color: Colors.white54))
+                  const Text(
+                    'No labours assigned to this trip',
+                    style: TextStyle(color: Colors.white54),
+                  )
                 else
                   ...labours.asMap().entries.map((entry) {
                     return Container(
@@ -67,7 +89,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border(
                           left: BorderSide(
-                            color: entry.value.isPresent ? AppTheme.successColor : AppTheme.errorColor,
+                            color: entry.value.isPresent
+                                ? AppTheme.successColor
+                                : AppTheme.errorColor,
                             width: 4,
                           ),
                         ),
@@ -76,22 +100,38 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                         title: Text(
                           'Labour ${entry.key + 1}',
                           style: TextStyle(
-                            color: entry.value.isPresent ? Colors.white : Colors.white54,
-                            decoration: entry.value.isPresent ? null : TextDecoration.lineThrough,
+                            color: entry.value.isPresent
+                                ? Colors.white
+                                : Colors.white54,
+                            decoration: entry.value.isPresent
+                                ? null
+                                : TextDecoration.lineThrough,
                           ),
                         ),
                         trailing: Icon(
-                          entry.value.isPresent ? Icons.check_circle : Icons.cancel,
-                          color: entry.value.isPresent ? AppTheme.successColor : AppTheme.errorColor,
+                          entry.value.isPresent
+                              ? Icons.check_circle
+                              : Icons.cancel,
+                          color: entry.value.isPresent
+                              ? AppTheme.successColor
+                              : AppTheme.errorColor,
                         ),
                       ),
                     );
                   }),
               ],
             );
-          } else if (state is WorkError) {
-            return Center(child: Text(state.message, style: const TextStyle(color: AppTheme.errorColor)));
           }
+
+          if (state is WorkError) {
+            return Center(
+              child: Text(
+                state.message,
+                style: const TextStyle(color: AppTheme.errorColor),
+              ),
+            );
+          }
+
           return const SizedBox.shrink();
         },
       ),
@@ -103,7 +143,13 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(color: Colors.white54)),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }

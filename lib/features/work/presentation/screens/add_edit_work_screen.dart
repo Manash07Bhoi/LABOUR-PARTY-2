@@ -167,8 +167,6 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
           tripLabours: finalLabours,
         ),
       );
-
-      context.pop();
     }
   }
 
@@ -188,6 +186,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Trip Saved Successfully!')),
             );
+            context.pop();
           } else if (state is WorkError) {
             ScaffoldMessenger.of(
               context,

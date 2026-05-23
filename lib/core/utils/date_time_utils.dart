@@ -1,12 +1,14 @@
 import 'package:intl/intl.dart';
 
 class DateTimeUtils {
-  static String getCurrentDateFormatted() {
-    return DateFormat('dd MMM yyyy').format(DateTime.now());
+  static String getCurrentDateFormatted([DateTime? now]) {
+    final timeToUse = now ?? DateTime.now();
+    return DateFormat('dd MMM yyyy').format(timeToUse);
   }
 
-  static String getCurrentSession() {
-    final hour = DateTime.now().hour;
+  static String getCurrentSession([DateTime? now]) {
+    final timeToUse = now ?? DateTime.now();
+    final hour = timeToUse.hour;
     if (hour >= 4 && hour < 12) {
       return 'Morning';
     } else {

@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/branding/app_icon_master.png',
+              'assets/branding/app_icon_192.png',
               width: 120,
               height: 120,
             ).animate().fade().scale(duration: 500.ms),

@@ -52,7 +52,9 @@ Future<Map<String, dynamic>> _parseAndValidateBackup(String filePath) async {
       throw Exception("Invalid JSON structure.");
     }
   } catch (e) {
-    if (e.toString().contains("BackupTooLarge") || e.toString().contains("BackupInvalid") || e.toString().contains("UnsupportedBackupVersion")) {
+    if (e.toString().contains("BackupTooLarge") ||
+        e.toString().contains("BackupInvalid") ||
+        e.toString().contains("UnsupportedBackupVersion")) {
       rethrow;
     }
     throw Exception("BackupInvalid");
@@ -76,11 +78,16 @@ Future<Map<String, dynamic>> _parseAndValidateBackup(String filePath) async {
   final laboursList = data['labours'] as List?;
   final tripLaboursList = data['tripLabours'] as List?;
 
-  if (worksList == null || tripsList == null || laboursList == null || tripLaboursList == null) {
+  if (worksList == null ||
+      tripsList == null ||
+      laboursList == null ||
+      tripLaboursList == null) {
     throw Exception("BackupInvalid");
   }
 
-  if (worksList.length > 10000 || tripsList.length > 100000 || laboursList.length > 5000) {
+  if (worksList.length > 10000 ||
+      tripsList.length > 100000 ||
+      laboursList.length > 5000) {
     throw Exception("BackupInvalid");
   }
 
@@ -189,7 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('OK', style: TextStyle(color: AppTheme.primaryColor)),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: AppTheme.primaryColor),
+            ),
           ),
         ],
       ),
@@ -214,11 +224,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           setState(() => _isLoading = false);
           final errorStr = e.toString();
           if (errorStr.contains("BackupTooLarge")) {
-            _showErrorDialog("Backup Too Large", "Selected backup exceeds the supported size limit.\n\nMaximum: 25 MB\n\nChoose another backup file.");
+            _showErrorDialog(
+              "Backup Too Large",
+              "Selected backup exceeds the supported size limit.\n\nMaximum: 25 MB\n\nChoose another backup file.",
+            );
           } else if (errorStr.contains("UnsupportedBackupVersion")) {
-            _showErrorDialog("Unsupported Backup Version", "The selected backup file version is not supported.");
+            _showErrorDialog(
+              "Unsupported Backup Version",
+              "The selected backup file version is not supported.",
+            );
           } else {
-            _showErrorDialog("Backup Invalid", "The selected backup file is corrupted or invalid.");
+            _showErrorDialog(
+              "Backup Invalid",
+              "The selected backup file is corrupted or invalid.",
+            );
           }
           return;
         }
@@ -349,8 +368,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 );
               }
               for (var tl in tripLaboursList) {
+                final compositeKey = '${tl['tripId']}_${tl['id']}';
                 await tripLabourBox.put(
-                  tl['id'],
+                  compositeKey,
                   TripLabourModel(
                     id: tl['id'],
                     tripId: tl['tripId'],
@@ -365,7 +385,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   tripBox.length != tripsList.length ||
                   labourBox.length != laboursList.length ||
                   tripLabourBox.length != tripLaboursList.length) {
-                throw Exception("Restore validation failed. Row count mismatch.");
+                throw Exception(
+                  "Restore validation failed. Row count mismatch.",
+                );
               }
 
               if (mounted) {
@@ -390,10 +412,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 await labourBox.put(l.id, l);
               }
               for (var tl in tripLaboursSnapshot) {
-                await tripLabourBox.put(tl.id, tl);
+                final compositeKey = '${tl.tripId}_${tl.id}';
+                await tripLabourBox.put(compositeKey, tl);
               }
 
-              _showErrorDialog("Restore Failed", "An error occurred during restore. All original data has been safely rolled back.\n\nError: $e");
+              _showErrorDialog(
+                "Restore Failed",
+                "An error occurred during restore. All original data has been safely rolled back.\n\nError: $e",
+              );
             }
           }
         }

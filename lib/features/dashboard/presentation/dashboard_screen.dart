@@ -44,17 +44,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: AppTheme.darkSurfaceColor,
-          title: const Text('Delete Trip?', style: TextStyle(color: Colors.white)),
-          content: const Text('Are you sure you want to remove the latest trip?'),
+          title: const Text(
+            'Delete Trip?',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'Are you sure you want to remove the latest trip?',
+          ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppTheme.errorColor),
+              ),
               onPressed: () {
                 context.read<WorkBloc>().add(const RemoveLatestTripEvent());
                 Navigator.of(context).pop();
@@ -73,7 +84,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset('assets/branding/app_icon_192.png', width: 32, height: 32),
+            Image.asset(
+              'assets/branding/app_icon_192.png',
+              width: 32,
+              height: 32,
+            ),
             const SizedBox(width: 8),
             const Text(
               'Labour Party',
@@ -87,10 +102,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context, state) {
           if (state is WorkLoading || state is WorkInitial) {
             return _buildSkeleton();
-          } else if (state is WorkEmpty) {
-            return _buildEmptyState();
           } else if (state is DashboardLoaded) {
             return _buildDashboard(state);
+          } else if (state is WorkEmpty) {
+            return _buildEmptyState();
           } else if (state is WorkError) {
             return Center(
               child: Text(
@@ -99,18 +114,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             );
           }
-          return const SizedBox.shrink();
+
+          return const Center(
+            child: Text(
+              'Unexpected State Encountered',
+              style: TextStyle(color: AppTheme.errorColor),
+            ),
+          );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          context.push('/add-edit-work', extra: {'isNew': true});
-        },
-        icon: const Icon(Icons.add),
-        label: const Text('Add Work'),
-      )
-      .animate(onPlay: (controller) => controller.repeat(reverse: true))
-      .shimmer(duration: 2.seconds, color: Colors.white24),
+      floatingActionButton:
+          FloatingActionButton.extended(
+                onPressed: () {
+                  context.push('/add-edit-work', extra: {'isNew': true});
+                },
+                icon: const Icon(Icons.add),
+                label: const Text('Add Work'),
+              )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .shimmer(duration: 2.seconds, color: Colors.white24),
     );
   }
 
@@ -138,7 +160,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       message: 'No work added today',
       ctaText: 'Add First Trip',
       icon: Icons.work_outline,
-      onCtaPressed: () => context.push('/add-edit-work', extra: {'isNew': true}),
+      onCtaPressed: () =>
+          context.push('/add-edit-work', extra: {'isNew': true}),
     ).animate().fade().scale();
   }
 
@@ -280,11 +303,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           IconButton(
-            onPressed: _onAddQuickTrip,
-            icon: const Icon(Icons.add_circle, size: 48),
-            color: AppTheme.primaryColor,
-          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-           .scale(begin: const Offset(1, 1), end: const Offset(1.1, 1.1), duration: 1.seconds),
+                onPressed: _onAddQuickTrip,
+                icon: const Icon(Icons.add_circle, size: 48),
+                color: AppTheme.primaryColor,
+              )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                begin: const Offset(1, 1),
+                end: const Offset(1.1, 1.1),
+                duration: 1.seconds,
+              ),
         ],
       ),
     );
@@ -331,20 +359,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 builder: (BuildContext context) {
                   return AlertDialog(
                     backgroundColor: AppTheme.darkSurfaceColor,
-                    title: const Text('Delete Trip?', style: TextStyle(color: Colors.white)),
-                    content: Text('Are you sure you want to delete Trip #${trip.tripNumber}?'),
+                    title: const Text(
+                      'Delete Trip?',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    content: Text(
+                      'Are you sure you want to delete Trip #${trip.tripNumber}?',
+                    ),
                     actions: <Widget>[
                       TextButton(
-                        child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(color: Colors.white70),
+                        ),
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
                       ),
                       TextButton(
-                        child: const Text('Delete', style: TextStyle(color: AppTheme.errorColor)),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: AppTheme.errorColor),
+                        ),
                         onPressed: () {
                           confirm = true;
-                          context.read<WorkBloc>().add(DeleteSpecificTripEvent(trip.id));
+                          context.read<WorkBloc>().add(
+                            DeleteSpecificTripEvent(trip.id),
+                          );
                           Navigator.of(context).pop();
                         },
                       ),
@@ -406,7 +447,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     Text(
                       DateTimeUtils.formatTime(trip.createdAt),
-                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      style: const TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),

@@ -15,6 +15,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   final SaveTripUseCase saveTrip;
   final DeleteTripUseCase deleteTrip;
   final GetLaboursForTripUseCase getLaboursForTrip;
+  final GetLaboursForTripsUseCase getLaboursForTrips;
   final SaveTripLabourUseCase saveTripLabour;
   final CalculateNextTripNumberUseCase calculateNextTripNumber;
   final Uuid uuid = const Uuid();
@@ -27,6 +28,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     required this.saveTrip,
     required this.deleteTrip,
     required this.getLaboursForTrip,
+    required this.getLaboursForTrips,
     required this.saveTripLabour,
     required this.calculateNextTripNumber,
   }) : super(WorkInitial()) {
@@ -59,8 +61,10 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       final tripsResult = await getTripsForWork(work.id);
       await tripsResult.fold((f) async {}, (trips) async {
         currentTrips = trips;
-        for (var trip in trips) {
-          final laboursResult = await getLaboursForTrip(trip.id);
+
+        if (trips.isNotEmpty) {
+          final tripIds = trips.map((t) => t.id).toList();
+          final laboursResult = await getLaboursForTrips(tripIds);
           laboursResult.fold((f) {}, (labours) {
             currentTotalLabourCount += labours.where((l) => l.isPresent).length;
           });

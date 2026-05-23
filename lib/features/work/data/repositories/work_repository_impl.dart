@@ -216,6 +216,28 @@ class WorkRepositoryImpl implements WorkRepository {
   }
 
   @override
+  Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(
+    List<String> tripIds,
+  ) async {
+    try {
+      final models = await localDataSource.getLaboursForTrips(tripIds);
+      final entities = models
+          .map(
+            (m) => TripLabour(
+              id: m.id,
+              tripId: m.tripId,
+              labourId: m.labourId,
+              isPresent: m.isPresent,
+            ),
+          )
+          .toList();
+      return Right(entities);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to fetch trip labours: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> saveTripLabour(TripLabour tripLabour) async {
     try {
       final model = TripLabourModel(

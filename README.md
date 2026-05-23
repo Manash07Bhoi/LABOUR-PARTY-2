@@ -78,7 +78,7 @@ The testing suite acts as the final gatekeeper for production releases.
 
 ## 📦 Release
 
-Builds must occur post RCA (Release Candidate Acceptance).
+Builds must occur post RCA (Release Candidate Acceptance) and require a configured keystore. See [**Release Documentation**](docs/RELEASE.md) for signing setup.
 
 - **Build APK:**
   ```bash

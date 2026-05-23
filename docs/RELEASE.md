@@ -1,40 +1,52 @@
-# Release Strategy
+# Release Process & Signing Configuration
 
-Releasing the application into production follows a stringent, measured strategy focused on stability, offline reliability, and binary optimization.
+This document outlines the standard procedure for signing and releasing the Labour Party application.
 
-## 1. Build Verification
-
-Before compiling any release binary, the codebase must clear the local validation chain. No pull request may merge without this checklist verified.
+## 1. Keystore Generation
+The project requires a production-grade keystore for release builds. You should not use the debug keys. If you do not have the keystore yet, generate one using the following command (recommended properties: RSA, 2048+ keysize, long validity):
 
 ```bash
-flutter pub get
-flutter analyze
-flutter test
+keytool -genkey -v \
+-keystore android/upload-keystore.jks \
+-keyalg RSA \
+-keysize 2048 \
+-validity 10000 \
+-alias labourparty
 ```
 
-## 2. Release Generation
+**Security Note:** Keep your keystore and its passwords secure. Never commit the `upload-keystore.jks` or `.properties` files containing secrets to version control.
 
-The Android application (`com.roshan.labourparty`) utilizes a `minSdk` of 24.
+## 2. Release Configuration
+The build process expects a `key.properties` file located at `android/key.properties`. A template is provided at `android/key.properties.example`.
 
-### Generating APK for Direct Distribution
-To build a highly optimized APK for direct sharing (sideloading):
+Create `android/key.properties` with the following keys, replacing the values with your keystore credentials:
+
+```properties
+storePassword=your_store_password
+keyPassword=your_key_password
+keyAlias=labourparty
+storeFile=upload-keystore.jks
+```
+
+If the release signing configuration is missing, running a release build will fail with a clear message:
+`Release signing configuration missing.`
+
+## 3. Building for Release
+
+Once the `key.properties` file is configured correctly, use the standard Flutter build commands to generate the release artifacts:
+
 ```bash
 flutter build apk --release
-```
-
-### Generating App Bundle for Play Store
-If distribution ever shifts to the Play Store, the required format is the AppBundle:
-```bash
 flutter build appbundle
 ```
 
-## 3. Optimizations & Constraints
+## 4. Release Validation Checklist
+Before distributing the application, verify the following:
 
-- **R8 / Proguard:** Active on all release builds. Strips unused classes and ensures the dart codebase is safely minified.
-- **APK Size Exception:** The validated baseline release APK size is `~52.1 MB`. This is structurally accepted because of embedded vector icon fonts (`MaterialIcons`, `CupertinoIcons`) required for a visually rich local-first experience.
-
-## 4. Permissions
-
-The application is engineered 100% offline. Consequently:
-- **No Internet Permissions:** The production `AndroidManifest.xml` explicitly prohibits internet access, ensuring absolute peace of mind regarding data sovereignty.
-- **Storage Permissions:** Required solely for exporting and importing the JSON backup files safely to the user's local filesystem.
+- [ ] Debug build succeeds (`flutter build apk --debug`)
+- [ ] Signed APK builds correctly (`flutter build apk --release`)
+- [ ] Signed AAB builds correctly (`flutter build appbundle`)
+- [ ] Application installs successfully from the signed APK
+- [ ] Application upgrades properly over a previous installation
+- [ ] Application icon and splash screen are correct
+- [ ] Release metadata (version code, version name) is accurate

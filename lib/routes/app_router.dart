@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:labour_party/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:labour_party/features/history/presentation/history_screen.dart';
+import 'package:labour_party/features/analytics/presentation/analytics_screen.dart';
+
 import 'package:labour_party/features/dashboard/presentation/splash_screen.dart';
 import 'package:labour_party/features/details/presentation/trip_details_screen.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
@@ -35,6 +38,14 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: '/settings',
           builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/history',
+          builder: (context, state) => const HistoryScreen(),
+        ),
+        GoRoute(
+          path: '/analytics',
+          builder: (context, state) => const AnalyticsScreen(),
         ),
       ],
     ),

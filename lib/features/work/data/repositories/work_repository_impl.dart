@@ -254,6 +254,17 @@ class WorkRepositoryImpl implements WorkRepository {
   }
 
   @override
+  @override
+  Future<Either<Failure, void>> deleteTripLabour(String id) async {
+    try {
+      await localDataSource.deleteTripLabour(id);
+      return const Right(null);
+    } catch (e) {
+      return Left(DatabaseFailure('Failed to delete: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> saveTripLabours(
     List<TripLabour> tripLabours,
   ) async {

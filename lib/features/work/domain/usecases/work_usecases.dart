@@ -101,7 +101,10 @@ class CalculateNextTripNumberUseCase {
     int highestMorningTrip = 0;
     int highestEveningTrip = 0;
 
-    final morningWorkResult = await repository.getWorkByDateAndSession(date, 'Morning');
+    final morningWorkResult = await repository.getWorkByDateAndSession(
+      date,
+      'Morning',
+    );
     await morningWorkResult.fold((f) async {}, (w) async {
       final tResult = await repository.getTripsForWork(w.id);
       tResult.fold((f) {}, (trips) {
@@ -113,7 +116,10 @@ class CalculateNextTripNumberUseCase {
       });
     });
 
-    final eveningWorkResult = await repository.getWorkByDateAndSession(date, 'Evening');
+    final eveningWorkResult = await repository.getWorkByDateAndSession(
+      date,
+      'Evening',
+    );
     await eveningWorkResult.fold((f) async {}, (w) async {
       final tResult = await repository.getTripsForWork(w.id);
       tResult.fold((f) {}, (trips) {
@@ -125,9 +131,11 @@ class CalculateNextTripNumberUseCase {
       });
     });
 
-    return Right((highestEveningTrip > highestMorningTrip
-            ? highestEveningTrip
-            : highestMorningTrip) +
-        1);
+    return Right(
+      (highestEveningTrip > highestMorningTrip
+              ? highestEveningTrip
+              : highestMorningTrip) +
+          1,
+    );
   }
 }

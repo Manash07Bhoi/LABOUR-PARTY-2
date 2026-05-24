@@ -4,7 +4,9 @@ import 'package:labour_party/shared/widgets/empty_state.dart';
 
 void main() {
   group('EmptyStateWidget Tests', () {
-    testWidgets('renders correctly with default icon', (WidgetTester tester) async {
+    testWidgets('renders correctly with default icon', (
+      WidgetTester tester,
+    ) async {
       bool buttonPressed = false;
       const message = 'No items found';
       const ctaText = 'Add Item';
@@ -36,7 +38,9 @@ void main() {
       expect(buttonPressed, isTrue);
     });
 
-    testWidgets('renders correctly with custom icon', (WidgetTester tester) async {
+    testWidgets('renders correctly with custom icon', (
+      WidgetTester tester,
+    ) async {
       const message = 'No history available';
       const ctaText = 'Refresh';
       const customIcon = Icons.history;

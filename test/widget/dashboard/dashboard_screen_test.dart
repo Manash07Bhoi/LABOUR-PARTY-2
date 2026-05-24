@@ -9,7 +9,9 @@ import 'package:labour_party/theme/app_theme.dart';
 import '../../helpers/mock_work_repository.dart';
 
 void main() {
-  testWidgets('DashboardScreen Renders Empty State Initially', (WidgetTester tester) async {
+  testWidgets('DashboardScreen Renders Empty State Initially', (
+    WidgetTester tester,
+  ) async {
     final mockRepo = MockWorkRepository();
     final workBloc = WorkBloc(
       getWorks: GetWorksUseCase(mockRepo),
@@ -23,6 +25,8 @@ void main() {
       saveTripLabour: SaveTripLabourUseCase(mockRepo),
       saveTripLabours: SaveTripLaboursUseCase(mockRepo),
       calculateNextTripNumber: CalculateNextTripNumberUseCase(mockRepo),
+      saveLabour: SaveLabourUseCase(mockRepo),
+      getLabours: GetLaboursUseCase(mockRepo),
     );
 
     await tester.pumpWidget(
@@ -37,7 +41,9 @@ void main() {
 
     // BLoC immediately emits WorkLoading, wait for WorkEmpty to emit
     await tester.pump();
-    await tester.pump(const Duration(seconds: 1)); // Work Empty animation resolution
+    await tester.pump(
+      const Duration(seconds: 1),
+    ); // Work Empty animation resolution
 
     expect(find.text('No work added today'), findsOneWidget);
 

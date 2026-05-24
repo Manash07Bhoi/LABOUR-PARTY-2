@@ -26,15 +26,43 @@ void main() {
       saveTripLabour: SaveTripLabourUseCase(mockRepo),
       saveTripLabours: SaveTripLaboursUseCase(mockRepo),
       calculateNextTripNumber: CalculateNextTripNumberUseCase(mockRepo),
+      saveLabour: SaveLabourUseCase(mockRepo),
+      getLabours: GetLaboursUseCase(mockRepo),
     );
   });
 
   test('E2E - Scenario C: Morning -> Evening continuity', () async {
     // Scaffold initial morning state directly into Repo
-    final workMorn = Work(id: 'm1', date: '01 Jan 2024', session: 'Morning', workType: 'Sand', place: '', createdAt: DateTime.now(), updatedAt: DateTime.now());
+    final workMorn = Work(
+      id: 'm1',
+      date: '01 Jan 2024',
+      session: 'Morning',
+      workType: 'Sand',
+      place: '',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
     await mockRepo.saveWork(workMorn);
-    await mockRepo.saveTrip(Trip(id: 't1', workId: 'm1', tripNumber: 1, tractor: '', driverName: '', createdAt: DateTime.now()));
-    await mockRepo.saveTrip(Trip(id: 't2', workId: 'm1', tripNumber: 2, tractor: '', driverName: '', createdAt: DateTime.now()));
+    await mockRepo.saveTrip(
+      Trip(
+        id: 't1',
+        workId: 'm1',
+        tripNumber: 1,
+        tractor: '',
+        driverName: '',
+        createdAt: DateTime.now(),
+      ),
+    );
+    await mockRepo.saveTrip(
+      Trip(
+        id: 't2',
+        workId: 'm1',
+        tripNumber: 2,
+        tractor: '',
+        driverName: '',
+        createdAt: DateTime.now(),
+      ),
+    );
 
     // Load an evening state
     workBloc.add(const LoadDashboardDataEvent('01 Jan 2024', 'Evening'));
@@ -45,7 +73,9 @@ void main() {
     expect(workBloc.state, isA<DashboardLoaded>());
 
     // Add quick trip simulates the + button creation
-    workBloc.add(const AddQuickTripEvent(date: '01 Jan 2024', session: 'Evening'));
+    workBloc.add(
+      const AddQuickTripEvent(date: '01 Jan 2024', session: 'Evening'),
+    );
     await Future.delayed(const Duration(milliseconds: 100));
 
     // Check repository directly for final continuity
@@ -54,7 +84,10 @@ void main() {
 
     final lastTrip = finalTrips.last;
     expect(lastTrip.sessionWorkId(workMorn.id), isFalse); // Different Work IDs
-    expect(lastTrip.tripNumber, 3); // Morning 2 + 1 = 3 Continuity verified natively
+    expect(
+      lastTrip.tripNumber,
+      3,
+    ); // Morning 2 + 1 = 3 Continuity verified natively
   });
 }
 

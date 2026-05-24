@@ -28,6 +28,8 @@ Future<void> init() async {
       calculateNextTripNumber: sl(),
       saveTripLabour: sl(),
       saveTripLabours: sl(),
+      saveLabour: sl(),
+      getLabours: sl(),
     ),
   );
 

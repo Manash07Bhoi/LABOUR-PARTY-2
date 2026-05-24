@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:labour_party/core/utils/date_time_utils.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
+import 'package:labour_party/features/work/domain/entities/labour.dart';
 import 'package:labour_party/features/work/domain/entities/work.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
@@ -14,9 +15,27 @@ import 'package:labour_party/shared/widgets/premium_button.dart';
 import 'package:labour_party/theme/app_theme.dart';
 import 'package:uuid/uuid.dart';
 
+
+class LabourFormModel {
+  final String labourId;
+  final String name;
+  bool isPresent;
+  LabourFormModel({required this.labourId, required this.name, this.isPresent = true});
+}
+
 class AddEditWorkScreen extends StatefulWidget {
+
   final bool isNew;
-  const AddEditWorkScreen({super.key, this.isNew = true});
+  final Trip? editingTrip;
+  final Work? editingWork;
+  final List<LabourFormModel>? editingLabours;
+  const AddEditWorkScreen({
+    super.key,
+    this.isNew = true,
+    this.editingTrip,
+    this.editingWork,
+    this.editingLabours,
+  });
 
   @override
   State<AddEditWorkScreen> createState() => _AddEditWorkScreenState();
@@ -32,20 +51,39 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
   final _tractorController = TextEditingController(text: 'Sonalika');
   final _driverController = TextEditingController();
 
-  final List<TripLabour> _currentLabours = [];
+  final List<LabourFormModel> _currentLabours = [];
   final Uuid _uuid = const Uuid();
 
   @override
   void initState() {
     super.initState();
-    _date = DateTimeUtils.getCurrentDateFormatted();
-    _session = DateTimeUtils.getCurrentSession();
+    if (widget.editingWork != null) {
+      _date = widget.editingWork!.date;
+      _session = widget.editingWork!.session;
+      _workTypeController.text = widget.editingWork!.workType;
+      _placeController.text = widget.editingWork!.place;
+    } else {
+      _date = DateTimeUtils.getCurrentDateFormatted();
+      _session = DateTimeUtils.getCurrentSession();
+    }
+
+    if (widget.editingTrip != null) {
+      _tractorController.text = widget.editingTrip!.tractor;
+      _driverController.text = widget.editingTrip!.driverName;
+    }
+
     _loadInitialData();
   }
 
   void _loadInitialData() {
+    if (widget.editingLabours != null) {
+      _currentLabours.addAll(widget.editingLabours!);
+    }
     final state = context.read<WorkBloc>().state;
-    if (state is DashboardLoaded) {
+    // Only autofill if we are NOT editing
+    if (widget.editingTrip == null &&
+        widget.editingWork == null &&
+        state is DashboardLoaded) {
       if (state.currentWork != null) {
         _workTypeController.text = state.currentWork!.workType;
         _placeController.text = state.currentWork!.place;
@@ -87,10 +125,9 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
                 if (nameCtrl.text.isNotEmpty) {
                   setState(() {
                     _currentLabours.add(
-                      TripLabour(
-                        id: _uuid.v4(),
-                        tripId: '',
+                      LabourFormModel(
                         labourId: _uuid.v4(),
+                        name: nameCtrl.text,
                         isPresent: true,
                       ),
                     );
@@ -119,16 +156,11 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
       }
 
       final workBloc = context.read<WorkBloc>();
-      final state = workBloc.state;
 
-      Work? existingWork;
-
-      if (state is DashboardLoaded) {
-        existingWork = state.currentWork;
-      }
-
-      final workId = existingWork?.id ?? _uuid.v4();
-      final tripId = _uuid.v4();
+      // Enforce deterministic ID based on date and session to prevent cross-day leakage and orphans
+      final String safeDateId = _date.replaceAll(' ', '_');
+      final workId = widget.editingWork?.id ?? 'work_${safeDateId}_$_session';
+      final tripId = widget.editingTrip?.id ?? _uuid.v4();
 
       final newWork = Work(
         id: workId,
@@ -136,27 +168,34 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
         session: _session,
         workType: _workTypeController.text,
         place: _placeController.text,
-        createdAt: existingWork?.createdAt ?? DateTime.now(),
+        createdAt: widget.editingWork?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
       final newTrip = Trip(
         id: tripId,
         workId: workId,
-        tripNumber: 0, // Assigned properly inside BLoC via UseCase
+        tripNumber: widget.editingTrip?.tripNumber ?? 0,
         tractor: _tractorController.text,
         driverName: _driverController.text,
-        createdAt: DateTime.now(),
+        createdAt: widget.editingTrip?.createdAt ?? DateTime.now(),
       );
 
       final finalLabours = _currentLabours
           .map(
             (l) => TripLabour(
-              id: l.id,
+              id: _uuid.v4(),
               tripId: tripId,
               labourId: l.labourId,
               isPresent: l.isPresent,
             ),
+          )
+          .toList();
+
+      final realLabours = _currentLabours
+          .map<Labour>(
+            (l) =>
+                Labour(id: l.labourId, name: l.name, createdAt: DateTime.now()),
           )
           .toList();
 
@@ -165,6 +204,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
           work: newWork,
           trip: newTrip,
           tripLabours: finalLabours,
+          labours: realLabours,
         ),
       );
     }
@@ -412,7 +452,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
           ),
         ..._currentLabours.asMap().entries.map((entry) {
           int idx = entry.key;
-          TripLabour tl = entry.value;
+          LabourFormModel tl = entry.value;
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             decoration: BoxDecoration(
@@ -429,7 +469,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
             ),
             child: ListTile(
               title: Text(
-                'Labour ${idx + 1}',
+                tl.name,
                 style: TextStyle(
                   color: tl.isPresent ? Colors.white : Colors.white54,
                   decoration: tl.isPresent ? null : TextDecoration.lineThrough,
@@ -454,12 +494,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
                     activeColor: AppTheme.successColor,
                     onChanged: (val) {
                       setState(() {
-                        _currentLabours[idx] = TripLabour(
-                          id: tl.id,
-                          tripId: tl.tripId,
-                          labourId: tl.labourId,
-                          isPresent: val,
-                        );
+                        _currentLabours[idx].isPresent = val;
                       });
                     },
                   ),

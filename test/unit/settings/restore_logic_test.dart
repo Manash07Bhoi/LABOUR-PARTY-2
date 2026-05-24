@@ -20,7 +20,11 @@ void main() {
       }
     });
 
-    File createBackupFile(String name, String content, {bool addExtension = true}) {
+    File createBackupFile(
+      String name,
+      String content, {
+      bool addExtension = true,
+    }) {
       final fileName = addExtension ? '$name.labourbackup' : name;
       final file = File('${tempDir.path}/$fileName');
       file.writeAsStringSync(content);
@@ -32,12 +36,7 @@ void main() {
         "app": "Labour Party",
         "version": 1,
         "createdAt": DateTime.now().toIso8601String(),
-        "data": {
-          "works": [],
-          "trips": [],
-          "labours": [],
-          "tripLabours": []
-        }
+        "data": {"works": [], "trips": [], "labours": [], "tripLabours": []},
       });
 
       final file = createBackupFile('valid', validJson);
@@ -47,7 +46,13 @@ void main() {
       expect(file.path.endsWith('.labourbackup'), isTrue);
       expect(file.lengthSync() < 25 * 1024 * 1024, isTrue);
 
-      final decoded = await file.openRead().transform(utf8.decoder).transform(json.decoder).first as Map<String, dynamic>;
+      final decoded =
+          await file
+                  .openRead()
+                  .transform(utf8.decoder)
+                  .transform(json.decoder)
+                  .first
+              as Map<String, dynamic>;
       expect(decoded['app'], equals('Labour Party'));
       expect(decoded['data'], isNotNull);
     });
@@ -59,19 +64,19 @@ void main() {
     });
 
     test('Invalid extension fails validation', () {
-       final file = createBackupFile('invalid_ext', '{}', addExtension: false);
-       expect(file.path.toLowerCase().endsWith('.labourbackup'), isFalse);
+      final file = createBackupFile('invalid_ext', '{}', addExtension: false);
+      expect(file.path.toLowerCase().endsWith('.labourbackup'), isFalse);
     });
 
     test('Max items validation', () {
-       final data = {
-         'works': List.generate(10001, (i) => {}),
-         'trips': [],
-         'labours': [],
-         'tripLabours': []
-       };
+      final data = {
+        'works': List.generate(10001, (i) => {}),
+        'trips': [],
+        'labours': [],
+        'tripLabours': [],
+      };
 
-       expect(data['works']!.length > 10000, isTrue);
+      expect(data['works']!.length > 10000, isTrue);
     });
   });
 }

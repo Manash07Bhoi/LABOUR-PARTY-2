@@ -18,7 +18,9 @@ void main() {
   final uuid = const Uuid();
 
   setUpAll(() async {
-    final tempDir = await Directory.systemTemp.createTemp('hive_benchmark_test');
+    final tempDir = await Directory.systemTemp.createTemp(
+      'hive_benchmark_test',
+    );
     Hive.init(tempDir.path);
     Hive.registerAdapter(WorkModelAdapter());
     Hive.registerAdapter(TripModelAdapter());
@@ -30,7 +32,9 @@ void main() {
     workBox = await Hive.openBox<WorkModel>('work_box_bench');
     tripBox = await Hive.openBox<TripModel>('trip_box_bench');
     labourBox = await Hive.openBox<LabourModel>('labour_box_bench');
-    tripLabourBox = await Hive.openBox<TripLabourModel>('trip_labour_box_bench');
+    tripLabourBox = await Hive.openBox<TripLabourModel>(
+      'trip_labour_box_bench',
+    );
 
     dataSource = WorkLocalDataSourceImpl(
       workBox: workBox,
@@ -58,24 +62,30 @@ void main() {
 
   Future<void> seedData(int tripCount) async {
     final workId = uuid.v4();
-    final trips = List.generate(tripCount, (index) => TripModel(
-      id: uuid.v4(),
-      workId: workId,
-      tripNumber: index + 1,
-      tractor: 'Tractor $index',
-      driverName: 'Driver $index',
-      createdAt: DateTime.now(),
-    ));
+    final trips = List.generate(
+      tripCount,
+      (index) => TripModel(
+        id: uuid.v4(),
+        workId: workId,
+        tripNumber: index + 1,
+        tractor: 'Tractor $index',
+        driverName: 'Driver $index',
+        createdAt: DateTime.now(),
+      ),
+    );
 
     final tripLabours = <TripLabourModel>[];
     for (var trip in trips) {
-      for (int j = 0; j < 5; j++) { // 5 labours per trip
-        tripLabours.add(TripLabourModel(
-          id: uuid.v4(),
-          tripId: trip.id,
-          labourId: uuid.v4(),
-          isPresent: j % 2 == 0,
-        ));
+      for (int j = 0; j < 5; j++) {
+        // 5 labours per trip
+        tripLabours.add(
+          TripLabourModel(
+            id: uuid.v4(),
+            tripId: trip.id,
+            labourId: uuid.v4(),
+            isPresent: j % 2 == 0,
+          ),
+        );
       }
     }
 
@@ -106,7 +116,9 @@ void main() {
       }
       n1Stopwatch.stop();
 
-      print('Trips: $count | N+1 Time: ${n1Stopwatch.elapsedMilliseconds} ms | Labours: $totalLabourCountN1');
+      print(
+        'Trips: $count | N+1 Time: ${n1Stopwatch.elapsedMilliseconds} ms | Labours: $totalLabourCountN1',
+      );
 
       // Batch way
       final batchStopwatch = Stopwatch()..start();
@@ -116,7 +128,9 @@ void main() {
       totalLabourCountBatch = labours.where((l) => l.isPresent).length;
       batchStopwatch.stop();
 
-      print('Trips: $count | Batch Time: ${batchStopwatch.elapsedMilliseconds} ms | Labours: $totalLabourCountBatch');
+      print(
+        'Trips: $count | Batch Time: ${batchStopwatch.elapsedMilliseconds} ms | Labours: $totalLabourCountBatch',
+      );
 
       expect(totalLabourCountN1, totalLabourCountBatch);
     }

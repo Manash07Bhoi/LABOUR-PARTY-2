@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
+import 'package:labour_party/features/work/domain/entities/labour.dart';
 import 'package:labour_party/features/work/domain/entities/work.dart';
 
 abstract class WorkEvent extends Equatable {
@@ -47,13 +48,15 @@ class SaveFullWorkTripEvent extends WorkEvent {
   final Work work;
   final Trip trip;
   final List<TripLabour> tripLabours;
+  final List<Labour> labours;
 
   const SaveFullWorkTripEvent({
     required this.work,
     required this.trip,
     required this.tripLabours,
+    required this.labours,
   });
 
   @override
-  List<Object?> get props => [work, trip, tripLabours];
+  List<Object?> get props => [work, trip, tripLabours, labours];
 }

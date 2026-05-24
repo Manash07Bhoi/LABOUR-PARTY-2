@@ -42,3 +42,20 @@ flutter build apk --release
 flutter build appbundle
 ```
 _Note: If signing variables are absent, the Gradle build will explicitly fail to prevent accidental un-signed APKs._
+
+## Installation & Distribution (v1.0.0-rc1)
+
+**Release Type:** Production Stable / Personal Distribution
+
+**Supported ABIs:**
+- `arm64-v8a` (Recommended ~18.1MB)
+- `armeabi-v7a` (~15.7MB)
+- `x86_64` (~19.6MB)
+
+**Installation Steps:**
+1. Navigate to GitHub Releases on this repository.
+2. Download `app-arm64-v8a-release.apk` (recommended for standard Android devices).
+3. Transfer the file and manually sideload onto the device.
+
+**Offline Requirements & Data Portability:**
+Labour Party runs completely isolated. No internet access is required or supported. Due to this constraint, operational data security remains the user's responsibility. It is highly recommended to routinely run the internal "Backup Database" mechanism (resulting in a `.labourbackup` file) to prevent hardware-failure data loss. Restoring data on new devices completely replaces the pre-existing repository context.

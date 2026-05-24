@@ -11,7 +11,9 @@ import 'package:labour_party/theme/app_theme.dart';
 import '../../helpers/mock_work_repository.dart';
 
 void main() {
-  testWidgets('TripDetailsScreen Renders Labour Detail Values through BLoC', (WidgetTester tester) async {
+  testWidgets('TripDetailsScreen Renders Labour Detail Values through BLoC', (
+    WidgetTester tester,
+  ) async {
     final mockRepo = MockWorkRepository();
     final workBloc = WorkBloc(
       getWorks: GetWorksUseCase(mockRepo),
@@ -27,9 +29,18 @@ void main() {
       calculateNextTripNumber: CalculateNextTripNumberUseCase(mockRepo),
     );
 
-    final trip = Trip(id: 't1', workId: 'w1', tripNumber: 42, tractor: 'Deere', driverName: 'John', createdAt: DateTime.now());
+    final trip = Trip(
+      id: 't1',
+      workId: 'w1',
+      tripNumber: 42,
+      tractor: 'Deere',
+      driverName: 'John',
+      createdAt: DateTime.now(),
+    );
     await mockRepo.saveTrip(trip);
-    await mockRepo.saveTripLabour(TripLabour(id: 'tl1', tripId: 't1', labourId: 'l1', isPresent: true));
+    await mockRepo.saveTripLabour(
+      TripLabour(id: 'tl1', tripId: 't1', labourId: 'l1', isPresent: true),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -41,7 +52,9 @@ void main() {
       ),
     );
 
-    await tester.pump(const Duration(seconds: 1)); // allow initial load event to fire + state emit
+    await tester.pump(
+      const Duration(seconds: 1),
+    ); // allow initial load event to fire + state emit
 
     expect(find.text('Trip #42'), findsOneWidget);
     expect(find.text('Deere'), findsOneWidget);

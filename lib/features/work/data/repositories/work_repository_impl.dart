@@ -254,14 +254,20 @@ class WorkRepositoryImpl implements WorkRepository {
   }
 
   @override
-  Future<Either<Failure, void>> saveTripLabours(List<TripLabour> tripLabours) async {
+  Future<Either<Failure, void>> saveTripLabours(
+    List<TripLabour> tripLabours,
+  ) async {
     try {
-      final models = tripLabours.map((tl) => TripLabourModel(
-        id: tl.id,
-        tripId: tl.tripId,
-        labourId: tl.labourId,
-        isPresent: tl.isPresent,
-      )).toList();
+      final models = tripLabours
+          .map(
+            (tl) => TripLabourModel(
+              id: tl.id,
+              tripId: tl.tripId,
+              labourId: tl.labourId,
+              isPresent: tl.isPresent,
+            ),
+          )
+          .toList();
 
       await localDataSource.saveTripLabours(models);
       return const Right(null);

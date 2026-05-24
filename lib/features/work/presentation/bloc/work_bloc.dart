@@ -148,7 +148,10 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       if (currentState.currentTrips.isNotEmpty) {
         lastTripToCopy = currentState.currentTrips.last;
       } else if (event.session == 'Evening') {
-        final morningWorkResult = await getWorkByDateAndSession(event.date, 'Morning');
+        final morningWorkResult = await getWorkByDateAndSession(
+          event.date,
+          'Morning',
+        );
         await morningWorkResult.fold((f) async {}, (w) async {
           final tResult = await getTripsForWork(w.id);
           tResult.fold((f) {}, (trips) {
@@ -191,13 +194,19 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
 
       await saveTrip(newTrip);
 
+
       if (copiedLabours.isNotEmpty) {
-        final newTripLabours = copiedLabours.map((l) => TripLabour(
-          id: l.id,
-          tripId: newTrip.id,
-          labourId: l.labourId,
-          isPresent: l.isPresent,
-        )).toList();
+        final newTripLabours = copiedLabours
+            .map(
+              (l) => TripLabour(
+                id: l.id,
+                tripId: newTrip.id,
+                labourId: l.labourId,
+                isPresent: l.isPresent,
+              ),
+            )
+            .toList();
+
         await saveTripLabours(newTripLabours);
       }
 

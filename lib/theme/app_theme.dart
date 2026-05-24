@@ -29,7 +29,10 @@ class AppTheme {
           .copyWith(
             bodyMedium: GoogleFonts.inter(color: Colors.white70),
             bodyLarge: GoogleFonts.inter(color: Colors.white),
-            titleLarge: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold),
+            titleLarge: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
       cardTheme: CardThemeData(
         color: darkSurfaceColor,

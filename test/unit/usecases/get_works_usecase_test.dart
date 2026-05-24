@@ -20,29 +20,45 @@ class WorkRepositorySpy implements WorkRepository {
 
   // --- Unused methods ---
   @override
-  Future<Either<Failure, void>> deleteTrip(String tripId) => throw UnimplementedError();
+  Future<Either<Failure, void>> deleteTrip(String tripId) =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, List<Trip>>> getAllTrips() => throw UnimplementedError();
+  Future<Either<Failure, List<Trip>>> getAllTrips() =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, List<Labour>>> getLabours() => throw UnimplementedError();
+  Future<Either<Failure, List<Labour>>> getLabours() =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, List<TripLabour>>> getLaboursForTrip(String tripId) => throw UnimplementedError();
+  Future<Either<Failure, List<TripLabour>>> getLaboursForTrip(String tripId) =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(List<String> tripIds) => throw UnimplementedError();
+  Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(
+    List<String> tripIds,
+  ) => throw UnimplementedError();
   @override
-  Future<Either<Failure, List<Trip>>> getTripsForWork(String workId) => throw UnimplementedError();
+  Future<Either<Failure, List<Trip>>> getTripsForWork(String workId) =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, Work>> getWorkByDateAndSession(String date, String session) => throw UnimplementedError();
+  Future<Either<Failure, Work>> getWorkByDateAndSession(
+    String date,
+    String session,
+  ) => throw UnimplementedError();
   @override
-  Future<Either<Failure, void>> saveLabour(Labour labour) => throw UnimplementedError();
+  Future<Either<Failure, void>> saveLabour(Labour labour) =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, void>> saveTrip(Trip trip) => throw UnimplementedError();
+  Future<Either<Failure, void>> saveTrip(Trip trip) =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, void>> saveTripLabour(TripLabour tripLabour) => throw UnimplementedError();
+  Future<Either<Failure, void>> saveTripLabour(TripLabour tripLabour) =>
+      throw UnimplementedError();
   @override
-  Future<Either<Failure, void>> saveTripLabours(List<TripLabour> newTripLabours) => throw UnimplementedError();
+  Future<Either<Failure, void>> saveTripLabours(
+    List<TripLabour> newTripLabours,
+  ) => throw UnimplementedError();
   @override
-  Future<Either<Failure, void>> saveWork(Work work) => throw UnimplementedError();
+  Future<Either<Failure, void>> saveWork(Work work) =>
+      throw UnimplementedError();
 }
 
 void main() {
@@ -129,12 +145,9 @@ void main() {
       final result = await usecase();
 
       // assert
-      result.fold(
-        (failure) => fail('Should not return a failure'),
-        (works) {
-          expect(identical(works, tWorks), isTrue);
-        },
-      );
+      result.fold((failure) => fail('Should not return a failure'), (works) {
+        expect(identical(works, tWorks), isTrue);
+      });
     });
   });
 }

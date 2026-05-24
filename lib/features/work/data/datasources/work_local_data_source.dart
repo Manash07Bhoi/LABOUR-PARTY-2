@@ -39,7 +39,9 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
   }
 
   void _migrateLegacyTripLabours() {
-    final legacyKeys = tripLabourBox.keys.where((k) => !k.toString().contains('_')).toList();
+    final legacyKeys = tripLabourBox.keys
+        .where((k) => !k.toString().contains('_'))
+        .toList();
     if (legacyKeys.isEmpty) return;
 
     for (var k in legacyKeys) {
@@ -139,7 +141,9 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
   @override
   Future<List<TripLabourModel>> getLaboursForTrips(List<String> tripIds) async {
     final tripIdSet = tripIds.toSet();
-    return tripLabourBox.values.where((tl) => tripIdSet.contains(tl.tripId)).toList();
+    return tripLabourBox.values
+        .where((tl) => tripIdSet.contains(tl.tripId))
+        .toList();
   }
 
   @override
@@ -159,8 +163,16 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
   @override
   Future<void> saveTripLabours(List<TripLabourModel> tripLabours) async {
     final Map<dynamic, TripLabourModel> entries = {
-      for (var tl in tripLabours) tl.id: tl
+      for (var tl in tripLabours) '${tl.tripId}_${tl.id}': tl
     };
+
+    // Cleanup any legacy keys being replaced in bulk
+    for (var tl in tripLabours) {
+      if (tripLabourBox.containsKey(tl.id)) {
+        await tripLabourBox.delete(tl.id);
+      }
+    }
+
     await tripLabourBox.putAll(entries);
   }
 }

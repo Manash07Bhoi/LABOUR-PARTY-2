@@ -3,7 +3,7 @@ import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 import 'package:labour_party/features/work/domain/entities/work.dart';
 
-abstract class WorkState extends Equatable {
+sealed class WorkState extends Equatable {
   const WorkState();
   @override
   List<Object?> get props => [];

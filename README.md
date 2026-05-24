@@ -59,3 +59,6 @@ _Note: If signing variables are absent, the Gradle build will explicitly fail to
 
 **Offline Requirements & Data Portability:**
 Labour Party runs completely isolated. No internet access is required or supported. Due to this constraint, operational data security remains the user's responsibility. It is highly recommended to routinely run the internal "Backup Database" mechanism (resulting in a `.labourbackup` file) to prevent hardware-failure data loss. Restoring data on new devices completely replaces the pre-existing repository context.
+
+## Hotfix (v1.0.1-hotfix-rc1)
+Hotfix integrating UI State corrections, Data Leakage barriers (date/session constraints), precise Labour string preservation via Hive mappings, and deterministic Add/Edit continuity flows. 

@@ -44,6 +44,8 @@ class MockWorkBloc extends Bloc<WorkEvent, WorkState> implements WorkBloc {
   get saveLabour => throw UnimplementedError();
   @override
   get getLabours => throw UnimplementedError();
+  @override
+  get deleteTripLabour => throw UnimplementedError();
 }
 
 void main() {

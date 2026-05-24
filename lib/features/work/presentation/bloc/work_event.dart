@@ -60,3 +60,47 @@ class SaveFullWorkTripEvent extends WorkEvent {
   @override
   List<Object?> get props => [work, trip, tripLabours, labours];
 }
+
+class SaveTripLabourEvent extends WorkEvent {
+  final TripLabour tripLabour;
+  final Labour labour;
+  const SaveTripLabourEvent({required this.tripLabour, required this.labour});
+  @override
+  List<Object?> get props => [tripLabour, labour];
+}
+
+class SaveLabourEvent extends WorkEvent {
+  final Labour labour;
+  const SaveLabourEvent({required this.labour});
+  @override
+  List<Object?> get props => [labour];
+}
+
+class UpdateTripLabourEvent extends WorkEvent {
+  final TripLabour tripLabour;
+  const UpdateTripLabourEvent(this.tripLabour);
+  @override
+  List<Object?> get props => [tripLabour];
+}
+
+class DeleteTripLabourEvent extends WorkEvent {
+  final String id;
+  final String tripId;
+  const DeleteTripLabourEvent(this.id, this.tripId);
+  @override
+  List<Object?> get props => [id, tripId];
+}
+
+class SearchDashboardEvent extends WorkEvent {
+  final String query;
+  const SearchDashboardEvent(this.query);
+  @override
+  List<Object?> get props => [query];
+}
+
+class FilterDashboardEvent extends WorkEvent {
+  final Map<String, dynamic> filters;
+  const FilterDashboardEvent(this.filters);
+  @override
+  List<Object?> get props => [filters];
+}

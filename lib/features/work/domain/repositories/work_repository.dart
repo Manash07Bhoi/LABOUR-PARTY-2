@@ -27,4 +27,5 @@ abstract class WorkRepository {
   );
   Future<Either<Failure, void>> saveTripLabour(TripLabour tripLabour);
   Future<Either<Failure, void>> saveTripLabours(List<TripLabour> tripLabours);
+  Future<Either<Failure, void>> deleteTripLabour(String id);
 }

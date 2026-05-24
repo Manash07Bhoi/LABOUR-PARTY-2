@@ -43,11 +43,17 @@ class MockWorkBloc extends Bloc<WorkEvent, WorkState> implements WorkBloc {
   get saveLabour => throw UnimplementedError();
   @override
   get getLabours => throw UnimplementedError();
+  @override
+  get deleteTripLabour => throw UnimplementedError();
 }
 
 void main() {
-  testWidgets('Dashboard recovers gracefully from TripDetailsLoaded', (WidgetTester tester) async {
-    final bloc = MockWorkBloc(const TripDetailsLoaded(tripLabours: [], labours: []));
+  testWidgets('Dashboard recovers gracefully from TripDetailsLoaded', (
+    WidgetTester tester,
+  ) async {
+    final bloc = MockWorkBloc(
+      const TripDetailsLoaded(tripLabours: [], labours: []),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -59,5 +65,6 @@ void main() {
     );
 
     expect(find.text('Unexpected state in Dashboard'), findsNothing);
+    await tester.pump(const Duration(seconds: 1)); // wait for skeleton timer
   });
 }

@@ -139,3 +139,11 @@ class CalculateNextTripNumberUseCase {
     );
   }
 }
+
+class DeleteTripLabourUseCase {
+  final WorkRepository repository;
+  DeleteTripLabourUseCase(this.repository);
+  Future<Either<Failure, void>> call(String id) async {
+    return await repository.deleteTripLabour(id);
+  }
+}

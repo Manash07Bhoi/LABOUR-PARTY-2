@@ -21,6 +21,7 @@ abstract class WorkLocalDataSource {
   Future<List<TripLabourModel>> getLaboursForTrips(List<String> tripIds);
   Future<void> saveTripLabour(TripLabourModel tripLabour);
   Future<void> saveTripLabours(List<TripLabourModel> tripLabours);
+  Future<void> deleteTripLabour(String id);
 }
 
 class WorkLocalDataSourceImpl implements WorkLocalDataSource {
@@ -144,6 +145,12 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
     return tripLabourBox.values
         .where((tl) => tripIdSet.contains(tl.tripId))
         .toList();
+  }
+
+  @override
+  @override
+  Future<void> deleteTripLabour(String id) async {
+    await tripLabourBox.delete(id);
   }
 
   @override

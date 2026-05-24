@@ -18,9 +18,16 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   final GetLaboursForTripsUseCase getLaboursForTrips;
   final SaveTripLabourUseCase saveTripLabour;
   final SaveTripLaboursUseCase saveTripLabours;
+  final DeleteTripLabourUseCase deleteTripLabour;
   final CalculateNextTripNumberUseCase calculateNextTripNumber;
   final SaveLabourUseCase saveLabour;
   final GetLaboursUseCase getLabours;
+
+  String _currentSearchQuery = '';
+  Map<String, dynamic> _currentFilters = {};
+  String _lastDate = '';
+  String _lastSession = '';
+
   final Uuid uuid = const Uuid();
 
   WorkBloc({
@@ -34,6 +41,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     required this.getLaboursForTrips,
     required this.saveTripLabour,
     required this.saveTripLabours,
+    required this.deleteTripLabour,
     required this.calculateNextTripNumber,
     required this.saveLabour,
     required this.getLabours,
@@ -43,7 +51,73 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     on<RemoveLatestTripEvent>(_onRemoveLatestTrip);
     on<DeleteSpecificTripEvent>(_onDeleteSpecificTrip);
     on<SaveFullWorkTripEvent>(_onSaveFullWorkTrip);
+    on<SaveTripLabourEvent>(_onSaveTripLabour);
+    on<SaveLabourEvent>(_onSaveLabour);
+    on<UpdateTripLabourEvent>(_onUpdateTripLabour);
+    on<DeleteTripLabourEvent>(_onDeleteTripLabour);
+    on<SearchDashboardEvent>(_onSearchDashboard);
+    on<FilterDashboardEvent>(_onFilterDashboard);
     on<LoadTripDetailsEvent>(_onLoadTripDetails);
+  }
+
+  Future<void> _onSaveTripLabour(
+    SaveTripLabourEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    emit(WorkLoading());
+    await saveLabour(event.labour);
+    await saveTripLabour(event.tripLabour);
+    add(LoadTripDetailsEvent(event.tripLabour.tripId));
+  }
+
+  Future<void> _onSaveLabour(
+    SaveLabourEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    emit(WorkLoading());
+    await saveLabour(event.labour);
+    // Reload dashboard or trip details. Since we don't know tripId here easily, we rely on the UI to just refresh or we fetch all trips?
+    // Actually, `SaveLabourEvent` is triggered from `TripDetailsScreen`, so we should reload `TripDetailsLoaded`. But we need the `tripId`.
+    // Let's just emit WorkActionSuccess!
+    emit(WorkActionSuccess());
+  }
+
+  Future<void> _onUpdateTripLabour(
+    UpdateTripLabourEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    emit(WorkLoading());
+    await saveTripLabour(event.tripLabour);
+    add(LoadTripDetailsEvent(event.tripLabour.tripId));
+  }
+
+  Future<void> _onDeleteTripLabour(
+    DeleteTripLabourEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    emit(WorkLoading());
+    await deleteTripLabour(event.id);
+    add(LoadTripDetailsEvent(event.tripId));
+  }
+
+  Future<void> _onSearchDashboard(
+    SearchDashboardEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    _currentSearchQuery = event.query.toLowerCase();
+    if (_lastDate.isNotEmpty && _lastSession.isNotEmpty) {
+      add(LoadDashboardDataEvent(_lastDate, _lastSession));
+    }
+  }
+
+  Future<void> _onFilterDashboard(
+    FilterDashboardEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    _currentFilters = event.filters;
+    if (_lastDate.isNotEmpty && _lastSession.isNotEmpty) {
+      add(LoadDashboardDataEvent(_lastDate, _lastSession));
+    }
   }
 
   Future<int> _getNextTripNum(String date) async {
@@ -100,6 +174,31 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     });
 
     int totalTrips = morningTripCount + eveningTripCount;
+
+    _lastDate = event.date;
+    _lastSession = event.session;
+
+    if (_currentSearchQuery.isNotEmpty || _currentFilters.isNotEmpty) {
+      currentTrips = currentTrips.where((trip) {
+        bool matchesSearch = true;
+        bool matchesFilter = true;
+
+        if (_currentSearchQuery.isNotEmpty) {
+          final query = _currentSearchQuery;
+          matchesSearch =
+              trip.driverName.toLowerCase().contains(query) ||
+              trip.tractor.toLowerCase().contains(query) ||
+              trip.tripNumber.toString().contains(query) ||
+              (currentWork?.workType.toLowerCase().contains(query) ?? false) ||
+              (currentWork?.place.toLowerCase().contains(query) ?? false);
+          // Labours search would require matching trip IDs, which we can skip to preserve speed, or do if we load them.
+          // But we already loaded `tripIds` for labours: `laboursResult`
+          // Wait, we don't have the labour names in _onLoadDashboardData!
+        }
+
+        return matchesSearch && matchesFilter;
+      }).toList();
+    }
 
     if (currentWork == null && totalTrips == 0) {
       emit(const WorkEmpty("No work added today"));

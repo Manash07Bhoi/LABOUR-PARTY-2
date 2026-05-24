@@ -6,8 +6,12 @@ import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
 import 'package:labour_party/features/work/domain/entities/labour.dart';
+import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 import 'package:labour_party/shared/widgets/glass_card.dart';
 import 'package:labour_party/theme/app_theme.dart';
+import 'package:uuid/uuid.dart';
+import 'package:go_router/go_router.dart';
+import 'package:labour_party/shared/widgets/custom_text_field.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   final Trip trip;
@@ -18,6 +22,115 @@ class TripDetailsScreen extends StatefulWidget {
 }
 
 class _TripDetailsScreenState extends State<TripDetailsScreen> {
+  final Uuid _uuid = const Uuid();
+
+  void _showAddLabourDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final nameCtrl = TextEditingController();
+        return AlertDialog(
+          backgroundColor: AppTheme.darkSurfaceColor,
+          title: const Text(
+            'Add Labour',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: CustomTextField(
+            label: 'Labour Name',
+            controller: nameCtrl,
+            hint: 'Enter name',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (nameCtrl.text.isNotEmpty) {
+                  final newLabour = Labour(
+                    id: _uuid.v4(),
+                    name: nameCtrl.text,
+                    createdAt: DateTime.now(),
+                  );
+                  final newTripLabour = TripLabour(
+                    id: _uuid.v4(),
+                    tripId: widget.trip.id,
+                    labourId: newLabour.id,
+                    isPresent: true,
+                  );
+                  context.read<WorkBloc>().add(
+                    SaveTripLabourEvent(
+                      tripLabour: newTripLabour,
+                      labour: newLabour,
+                    ),
+                  );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text(
+                'Add',
+                style: TextStyle(color: AppTheme.accentColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void editLabourDialog(Labour labour) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final nameCtrl = TextEditingController(text: labour.name);
+        return AlertDialog(
+          backgroundColor: AppTheme.darkSurfaceColor,
+          title: const Text(
+            'Edit Labour',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: CustomTextField(
+            label: 'Labour Name',
+            controller: nameCtrl,
+            hint: 'Enter name',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                if (nameCtrl.text.isNotEmpty) {
+                  final updatedLabour = Labour(
+                    id: labour.id,
+                    name: nameCtrl.text,
+                    createdAt: labour.createdAt,
+                  );
+                  context.read<WorkBloc>().add(
+                    SaveLabourEvent(labour: updatedLabour),
+                  );
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text(
+                'Save',
+                style: TextStyle(color: AppTheme.accentColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -27,7 +140,31 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Trip #${widget.trip.tripNumber}')),
+      appBar: AppBar(
+        title: Text('Trip #${widget.trip.tripNumber}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // Edit trip requires work object! Let's fetch it via BLoC? No, we can just push to AddEdit.
+              // Wait, AddEditWorkScreen requires the Work object?
+              // The user said "Edit Trip" from this screen.
+              context.push(
+                '/add-edit-work',
+                extra: {
+                  'isNew': false,
+                  'editingTrip': widget.trip,
+                  'editingWork': null,
+                },
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () => _showAddLabourDialog(),
+          ),
+        ],
+      ),
       body: BlocBuilder<WorkBloc, WorkState>(
         builder: (context, state) {
           return switch (state) {

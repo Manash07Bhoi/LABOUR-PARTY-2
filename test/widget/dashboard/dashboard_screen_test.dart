@@ -25,6 +25,8 @@ void main() {
       saveTripLabour: SaveTripLabourUseCase(mockRepo),
       saveTripLabours: SaveTripLaboursUseCase(mockRepo),
       calculateNextTripNumber: CalculateNextTripNumberUseCase(mockRepo),
+      saveLabour: SaveLabourUseCase(mockRepo),
+      getLabours: GetLaboursUseCase(mockRepo),
     );
 
     await tester.pumpWidget(

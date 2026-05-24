@@ -100,27 +100,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: BlocBuilder<WorkBloc, WorkState>(
         builder: (context, state) {
-
           return switch (state) {
             WorkLoading() || WorkInitial() => _buildSkeleton(),
             WorkEmpty() => _buildEmptyState(),
             DashboardLoaded() => _buildDashboard(state),
             WorkError(message: final message) => Center(
-
               child: Text(
                 message,
                 style: const TextStyle(color: AppTheme.errorColor),
               ),
             ),
 
-            TripDetailsLoaded() || WorkActionSuccess() => const Center(
+            TripDetailsLoaded() => const Center(
               child: Text(
                 'Unexpected state in Dashboard',
                 style: TextStyle(color: AppTheme.errorColor),
               ),
             ),
+            WorkActionSuccess() => _buildSkeleton(),
           };
-
         },
       ),
       floatingActionButton:

@@ -108,7 +108,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
             DashboardLoaded() => () {
               final filteredTrips = state.currentTrips.where((trip) {
                 return trip.driverName.toLowerCase().contains(_searchQuery) ||
-                    trip.tractor.toLowerCase().contains(_searchQuery);
+                    trip.tractor.toLowerCase().contains(_searchQuery) ||
+                    trip.tripNumber.toString().contains(_searchQuery);
               }).toList();
 
               if (filteredTrips.isEmpty) {
@@ -131,7 +132,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
             }(),
             WorkLoading() || WorkInitial() => const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryColor),
-
             ),
             WorkError(message: final message) => Center(
               child: Text(
@@ -150,7 +150,6 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 'Unexpected state in DetailsScreen',
                 style: TextStyle(color: AppTheme.errorColor),
               ),
-
             ),
           };
         },
@@ -214,18 +213,31 @@ class _DetailsScreenState extends State<DetailsScreen> {
             final trip = trips[index];
             return Dismissible(
               key: Key(trip.id),
-              direction: DismissDirection.endToStart,
-              background: Container(
-                alignment: Alignment.centerRight,
-                padding: const EdgeInsets.only(right: 20.0),
+              direction: DismissDirection.horizontal,
+              secondaryBackground: Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 20.0),
                 decoration: BoxDecoration(
-                  color: AppTheme.errorColor,
+                  color: Colors.blue,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.delete, color: Colors.white),
+                child: const Icon(Icons.edit, color: Colors.white),
+              ),
+              background: Container(
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.only(left: 20.0),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.edit, color: Colors.white),
               ),
               confirmDismiss: (direction) async {
-                _confirmDeleteTrip(trip);
+                if (direction == DismissDirection.endToStart) {
+                  _confirmDeleteTrip(trip);
+                } else {
+                  _editTrip(trip);
+                }
                 return false;
               },
               child: GestureDetector(
@@ -305,4 +317,13 @@ class _DetailsScreenState extends State<DetailsScreen> {
       ],
     );
   }
+
+  void _editTrip(Trip trip) async {
+    final state = context.read<WorkBloc>().state;
+    if (state is DashboardLoaded) {
+      final work = state.currentWork;
+      context.push('/add-edit-work', extra: {'isNew': false, 'editingTrip': trip, 'editingWork': work});
+    }
+  }
+
 }

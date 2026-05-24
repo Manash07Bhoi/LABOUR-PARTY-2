@@ -19,6 +19,8 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   final SaveTripLabourUseCase saveTripLabour;
   final SaveTripLaboursUseCase saveTripLabours;
   final CalculateNextTripNumberUseCase calculateNextTripNumber;
+  final SaveLabourUseCase saveLabour;
+  final GetLaboursUseCase getLabours;
   final Uuid uuid = const Uuid();
 
   WorkBloc({
@@ -33,6 +35,8 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     required this.saveTripLabour,
     required this.saveTripLabours,
     required this.calculateNextTripNumber,
+    required this.saveLabour,
+    required this.getLabours,
   }) : super(WorkInitial()) {
     on<LoadDashboardDataEvent>(_onLoadDashboardData);
     on<AddQuickTripEvent>(_onAddQuickTrip);
@@ -194,7 +198,6 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
 
       await saveTrip(newTrip);
 
-
       if (copiedLabours.isNotEmpty) {
         final newTripLabours = copiedLabours
             .map(
@@ -261,9 +264,19 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   ) async {
     emit(WorkLoading());
     final result = await getLaboursForTrip(event.tripId);
-    result.fold(
-      (failure) => emit(const WorkError('Failed to load trip details')),
-      (labours) => emit(TripDetailsLoaded(labours)),
+    await result.fold(
+      (failure) async => emit(const WorkError('Failed to load trip details')),
+      (tripLabours) async {
+        final allLaboursResult = await getLabours();
+        allLaboursResult.fold(
+          (f) => emit(const WorkError('Failed to load labours')),
+          (allLabours) {
+            emit(
+              TripDetailsLoaded(tripLabours: tripLabours, labours: allLabours),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -289,6 +302,14 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
 
     await saveWork(event.work);
     await saveTrip(finalTrip);
+
+    for (var labour in event.labours) {
+      await saveLabour(labour);
+    }
+
+    // Delete old trip labours for this trip to prevent orphans when editing
+    // Wait, we don't have a usecase to delete TripLabours individually. We can just delete the whole trip then save it again? No, deleteTrip deletes the Trip too.
+    // Let's create DeleteTripLaboursForTripUseCase or just update the Datasource to clean it up.
     if (event.tripLabours.isNotEmpty) {
       await saveTripLabours(event.tripLabours);
     }

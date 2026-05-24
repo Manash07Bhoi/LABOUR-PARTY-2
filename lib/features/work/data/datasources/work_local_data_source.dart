@@ -162,8 +162,18 @@ class WorkLocalDataSourceImpl implements WorkLocalDataSource {
 
   @override
   Future<void> saveTripLabours(List<TripLabourModel> tripLabours) async {
+    if (tripLabours.isEmpty) return;
+    final tripId = tripLabours.first.tripId;
+
+    // First, delete ALL existing labours for this trip to prevent orphans when an edit removes a labour
+    final prefix = '${tripId}_';
+    final keysToDelete = tripLabourBox.keys
+        .where((k) => k.toString().startsWith(prefix))
+        .toList();
+    await tripLabourBox.deleteAll(keysToDelete);
+
     final Map<dynamic, TripLabourModel> entries = {
-      for (var tl in tripLabours) '${tl.tripId}_${tl.id}': tl
+      for (var tl in tripLabours) '${tl.tripId}_${tl.id}': tl,
     };
 
     // Cleanup any legacy keys being replaced in bulk

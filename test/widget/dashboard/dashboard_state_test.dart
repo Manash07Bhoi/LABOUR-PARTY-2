@@ -40,10 +40,16 @@ class MockWorkBloc extends Bloc<WorkEvent, WorkState> implements WorkBloc {
   get saveWork => throw UnimplementedError();
   @override
   get uuid => throw UnimplementedError();
+  @override
+  get saveLabour => throw UnimplementedError();
+  @override
+  get getLabours => throw UnimplementedError();
 }
 
 void main() {
-  testWidgets('DashboardScreen handles WorkActionSuccess gracefully', (WidgetTester tester) async {
+  testWidgets('DashboardScreen handles WorkActionSuccess gracefully', (
+    WidgetTester tester,
+  ) async {
     final bloc = MockWorkBloc(WorkActionSuccess());
 
     await tester.pumpWidget(

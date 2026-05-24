@@ -40,11 +40,9 @@ class MockWorkRepository implements WorkRepository {
   Future<Either<Failure, List<TripLabour>>> getLaboursForTrips(
     List<String> tripIds,
   ) async {
-
     return Right(
       tripLabours.where((tl) => tripIds.contains(tl.tripId)).toList(),
     );
-
   }
 
   @override
@@ -97,6 +95,10 @@ class MockWorkRepository implements WorkRepository {
   Future<Either<Failure, void>> saveTripLabours(
     List<TripLabour> newTripLabours,
   ) async {
+    if (newTripLabours.isNotEmpty) {
+      final tripId = newTripLabours.first.tripId;
+      tripLabours.removeWhere((tl) => tl.tripId == tripId);
+    }
     for (var tl in newTripLabours) {
       tripLabours.removeWhere((existing) => existing.id == tl.id);
       tripLabours.add(tl);

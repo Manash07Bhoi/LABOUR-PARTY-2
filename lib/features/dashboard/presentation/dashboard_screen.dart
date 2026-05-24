@@ -100,13 +100,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: BlocBuilder<WorkBloc, WorkState>(
         builder: (context, state) {
-
           return switch (state) {
             WorkLoading() || WorkInitial() => _buildSkeleton(),
             WorkEmpty() => _buildEmptyState(),
             DashboardLoaded() => _buildDashboard(state),
             WorkError(message: final message) => Center(
-
               child: Text(
                 message,
                 style: const TextStyle(color: AppTheme.errorColor),
@@ -121,7 +119,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             WorkActionSuccess() => _buildSkeleton(),
           };
-
         },
       ),
       floatingActionButton:

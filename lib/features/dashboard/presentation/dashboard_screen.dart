@@ -113,12 +113,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
 
-            TripDetailsLoaded() || WorkActionSuccess() => const Center(
+            TripDetailsLoaded() => const Center(
               child: Text(
                 'Unexpected state in Dashboard',
                 style: TextStyle(color: AppTheme.errorColor),
               ),
             ),
+            WorkActionSuccess() => _buildSkeleton(),
           };
 
         },

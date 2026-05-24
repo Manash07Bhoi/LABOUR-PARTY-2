@@ -25,6 +25,7 @@ void main() {
       getLaboursForTrips: GetLaboursForTripsUseCase(mockRepo),
       saveTripLabour: SaveTripLabourUseCase(mockRepo),
       saveTripLabours: SaveTripLaboursUseCase(mockRepo),
+      deleteTripLabour: DeleteTripLabourUseCase(mockRepo),
       calculateNextTripNumber: CalculateNextTripNumberUseCase(mockRepo),
       saveLabour: SaveLabourUseCase(mockRepo),
       getLabours: GetLaboursUseCase(mockRepo),
@@ -57,7 +58,12 @@ void main() {
 
     // Send event
     workBloc.add(
-      SaveFullWorkTripEvent(work: work, trip: trip, tripLabours: const [], labours: const []),
+      SaveFullWorkTripEvent(
+        work: work,
+        trip: trip,
+        tripLabours: const [],
+        labours: const [],
+      ),
     );
 
     // Await state updates

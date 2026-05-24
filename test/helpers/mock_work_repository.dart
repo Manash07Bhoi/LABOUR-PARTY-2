@@ -92,6 +92,13 @@ class MockWorkRepository implements WorkRepository {
   }
 
   @override
+  @override
+  Future<Either<Failure, void>> deleteTripLabour(String id) async {
+    tripLabours.removeWhere((tl) => tl.id == id);
+    return const Right(null);
+  }
+
+  @override
   Future<Either<Failure, void>> saveTripLabours(
     List<TripLabour> newTripLabours,
   ) async {

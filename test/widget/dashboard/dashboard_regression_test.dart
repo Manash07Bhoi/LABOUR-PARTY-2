@@ -3,9 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:labour_party/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
-import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
-import 'dart:async';
+import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
 import 'package:bloc/bloc.dart';
 
 class MockWorkBloc extends Bloc<WorkEvent, WorkState> implements WorkBloc {
@@ -49,10 +48,12 @@ class MockWorkBloc extends Bloc<WorkEvent, WorkState> implements WorkBloc {
 }
 
 void main() {
-  testWidgets('DashboardScreen handles WorkActionSuccess gracefully', (
+  testWidgets('Dashboard recovers gracefully from TripDetailsLoaded', (
     WidgetTester tester,
   ) async {
-    final bloc = MockWorkBloc(WorkActionSuccess());
+    final bloc = MockWorkBloc(
+      const TripDetailsLoaded(tripLabours: [], labours: []),
+    );
 
     await tester.pumpWidget(
       MaterialApp(
@@ -63,11 +64,7 @@ void main() {
       ),
     );
 
-    // Should NOT find 'Unexpected state in Dashboard'
     expect(find.text('Unexpected state in Dashboard'), findsNothing);
-
-    // Should find skeleton (which might not have specific text, but we know it doesn't crash)
-    // We just wait a short time instead of pumpAndSettle.
-    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1)); // wait for skeleton timer
   });
 }

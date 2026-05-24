@@ -15,16 +15,18 @@ import 'package:labour_party/shared/widgets/premium_button.dart';
 import 'package:labour_party/theme/app_theme.dart';
 import 'package:uuid/uuid.dart';
 
-
 class LabourFormModel {
   final String labourId;
   final String name;
   bool isPresent;
-  LabourFormModel({required this.labourId, required this.name, this.isPresent = true});
+  LabourFormModel({
+    required this.labourId,
+    required this.name,
+    this.isPresent = true,
+  });
 }
 
 class AddEditWorkScreen extends StatefulWidget {
-
   final bool isNew;
   final Trip? editingTrip;
   final Work? editingWork;

@@ -322,8 +322,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final state = context.read<WorkBloc>().state;
     if (state is DashboardLoaded) {
       final work = state.currentWork;
-      context.push('/add-edit-work', extra: {'isNew': false, 'editingTrip': trip, 'editingWork': work});
+      context.push(
+        '/add-edit-work',
+        extra: {'isNew': false, 'editingTrip': trip, 'editingWork': work},
+      );
     }
   }
-
 }

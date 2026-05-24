@@ -20,6 +20,8 @@ class WorkRepositorySpy implements WorkRepository {
 
   // --- Unused methods ---
   @override
+  Future<Either<Failure, void>> deleteTripLabour(String id) async => const Right(null);
+  @override
   Future<Either<Failure, void>> deleteTrip(String tripId) =>
       throw UnimplementedError();
   @override

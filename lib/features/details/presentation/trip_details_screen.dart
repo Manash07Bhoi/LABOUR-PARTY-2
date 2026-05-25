@@ -197,9 +197,15 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             WorkLoading() || WorkInitial() => const Center(
               child: CircularProgressIndicator(color: AppTheme.primaryColor),
             ),
+            NavigateToConfirmNextTripState() => const SizedBox.shrink(),
+            WorkActionSuccess() => const SizedBox.shrink(),
+            DashboardLoaded() => const SizedBox.shrink(),
+            WorkEmpty() => const Center(child: Text('No details')),
+            WorkError() => const Center(child: Text('Error loading details')),
             TripDetailsLoaded(
               tripLabours: final tripLabours,
               labours: final allLabours,
+              work: final work,
             ) =>
               ListView(
                 padding: const EdgeInsets.all(16),
@@ -217,25 +223,123 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildInfoRow('Tractor', widget.trip.tractor),
+                        _buildInfoRow(
+                          'Tractor',
+                          widget.trip.tractor.isNotEmpty
+                              ? widget.trip.tractor
+                              : 'Not specified',
+                        ),
                         const SizedBox(height: 8),
-                        _buildInfoRow('Driver', widget.trip.driverName),
+                        _buildInfoRow(
+                          'Driver',
+                          widget.trip.driverName.isNotEmpty
+                              ? widget.trip.driverName
+                              : 'Not specified',
+                        ),
                         const SizedBox(height: 8),
                         _buildInfoRow(
                           'Time',
                           DateTimeUtils.formatTime(widget.trip.createdAt),
                         ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          'Status',
+                          widget.trip.status.isNotEmpty
+                              ? widget.trip.status
+                              : 'Not specified',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Work Info',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInfoRow('Work Date', work?.date ?? 'Unknown'),
+                        const SizedBox(height: 8),
+                        _buildInfoRow('Session', work?.session ?? 'Unknown'),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          'Place',
+                          widget.trip.place.isNotEmpty
+                              ? widget.trip.place
+                              : 'Not specified',
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          'Work Type',
+                          widget.trip.workType.isNotEmpty
+                              ? widget.trip.workType
+                              : 'Not specified',
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          'Notes',
+                          widget.trip.notes.isNotEmpty
+                              ? widget.trip.notes
+                              : 'Not specified',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  GlassCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Timeline',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildInfoRow(
+                          'Created At',
+                          DateTimeUtils.formatTime(widget.trip.createdAt),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          'Last Modified',
+                          DateTimeUtils.formatTime(widget.trip.updatedAt),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildInfoRow(
+                          'Duration',
+                          '${widget.trip.updatedAt.difference(widget.trip.createdAt).inMinutes} mins',
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Labour Details',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Labour Details',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        'Total: ${tripLabours.length} | Present: ${tripLabours.where((t) => t.isPresent).length}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   if (tripLabours.isEmpty)
@@ -364,8 +468,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 style: const TextStyle(color: AppTheme.errorColor),
               ),
             ),
-            WorkEmpty() ||
-            DashboardLoaded() ||
+            WorkEmpty() => const SizedBox.shrink(),
+            DashboardLoaded() => const SizedBox.shrink(),
+            NavigateToConfirmNextTripState() => const SizedBox.shrink(),
             WorkActionSuccess() => const SizedBox.shrink(),
           };
         },

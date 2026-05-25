@@ -73,9 +73,28 @@ void main() {
     // Therefore it emits DashboardLoaded with empty currentTrips, not WorkEmpty.
     expect(workBloc.state, isA<DashboardLoaded>());
 
-    // Add quick trip simulates the + button creation
+    // Wait for state to settle to NavigateToConfirmNextTripState then submit it back
     workBloc.add(
-      const AddQuickTripEvent(date: '01 Jan 2024', session: 'Evening'),
+      const NavigateToConfirmNextTripEvent(
+        date: '01 Jan 2024',
+        session: 'Evening',
+      ),
+    );
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // We can simulate the SaveNextTripEvent since the UI handles the mapping now
+    workBloc.add(
+      SaveNextTripEvent(
+        trip: Trip(
+          id: 't3',
+          workId: 'e1', // A new Evening Work ID
+          tripNumber: 3,
+          tractor: 'T1',
+          driverName: 'D1',
+          createdAt: DateTime.now(),
+        ),
+        tripLabours: const [],
+      ),
     );
     await Future.delayed(const Duration(milliseconds: 100));
 

@@ -142,6 +142,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
             ),
             TripDetailsLoaded() => const SizedBox.shrink(),
             WorkActionSuccess() => const SizedBox.shrink(),
+            NavigateToConfirmNextTripState() => const SizedBox.shrink(),
           };
         },
       ),

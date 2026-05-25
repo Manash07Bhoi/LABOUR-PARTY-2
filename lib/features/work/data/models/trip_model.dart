@@ -16,6 +16,16 @@ class TripModel extends HiveObject {
   final String driverName;
   @HiveField(5)
   final DateTime createdAt;
+  @HiveField(6, defaultValue: '')
+  final String place;
+  @HiveField(7, defaultValue: 'Sand (Bali)')
+  final String workType;
+  @HiveField(8, defaultValue: '')
+  final String notes;
+  @HiveField(9, defaultValue: null)
+  final DateTime? updatedAt;
+  @HiveField(10, defaultValue: 'Completed')
+  final String status;
 
   TripModel({
     required this.id,
@@ -24,5 +34,10 @@ class TripModel extends HiveObject {
     required this.tractor,
     required this.driverName,
     required this.createdAt,
+    this.place = '',
+    this.workType = 'Sand (Bali)',
+    this.notes = '',
+    this.updatedAt,
+    this.status = 'Completed',
   });
 }

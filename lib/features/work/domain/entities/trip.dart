@@ -7,6 +7,11 @@ class Trip extends Equatable {
   final String tractor;
   final String driverName;
   final DateTime createdAt;
+  final String place;
+  final String workType;
+  final String notes;
+  final DateTime updatedAt;
+  final String status;
 
   const Trip({
     required this.id,
@@ -15,7 +20,12 @@ class Trip extends Equatable {
     required this.tractor,
     required this.driverName,
     required this.createdAt,
-  });
+    this.place = '',
+    this.workType = 'Sand (Bali)',
+    this.notes = '',
+    DateTime? updatedAt,
+    this.status = 'Completed',
+  }) : updatedAt = updatedAt ?? createdAt;
 
   @override
   List<Object> get props => [
@@ -25,5 +35,10 @@ class Trip extends Equatable {
     tractor,
     driverName,
     createdAt,
+    place,
+    workType,
+    notes,
+    updatedAt,
+    status,
   ];
 }

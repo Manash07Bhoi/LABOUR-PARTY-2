@@ -98,6 +98,11 @@ class WorkRepositoryImpl implements WorkRepository {
               tractor: m.tractor,
               driverName: m.driverName,
               createdAt: m.createdAt,
+              place: m.place,
+              workType: m.workType,
+              notes: m.notes,
+              updatedAt: m.updatedAt,
+              status: m.status,
             ),
           )
           .toList();
@@ -120,6 +125,11 @@ class WorkRepositoryImpl implements WorkRepository {
               tractor: m.tractor,
               driverName: m.driverName,
               createdAt: m.createdAt,
+              place: m.place,
+              workType: m.workType,
+              notes: m.notes,
+              updatedAt: m.updatedAt,
+              status: m.status,
             ),
           )
           .toList();
@@ -139,6 +149,11 @@ class WorkRepositoryImpl implements WorkRepository {
         tractor: trip.tractor,
         driverName: trip.driverName,
         createdAt: trip.createdAt,
+        place: trip.place,
+        workType: trip.workType,
+        notes: trip.notes,
+        updatedAt: trip.updatedAt,
+        status: trip.status,
       );
       await localDataSource.saveTrip(model);
       return const Right(null);

@@ -1,10 +1,6 @@
 # Labour Party
 
-<<<<<<< HEAD
 Labour Party is an offline-first labour trip management application built for Android.
-=======
-Labour Party is an offline-first labour trip management application built for Android.
->>>>>>> jules-18240070359165854260-964ecb4c-final
 
 ## Features
 - **Offline First**: All data is stored locally using Hive. No cloud dependency.

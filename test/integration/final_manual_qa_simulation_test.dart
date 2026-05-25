@@ -122,9 +122,10 @@ void main() {
     ); // Labour entities persist globally historically
     expect(
       repo.tripLabours.length,
-      1,
-    ); // TripLabour replaced l1 with l2 cleanly
-    expect(repo.tripLabours.first.labourId, 'l2');
+      2,
+    ); // TripLabour soft deletes old record (isPresent=false), keeps new one
+    expect(repo.tripLabours.any((tl) => tl.labourId == 'l2' && tl.isPresent), true);
+    expect(repo.tripLabours.any((tl) => tl.labourId == 'l1' && !tl.isPresent), true);
 
     // Scenario C: Multi-Day Isolation
     final work2 = Work(
@@ -163,7 +164,7 @@ void main() {
 
     expect(repo.works.length, 2);
     expect(repo.trips.length, 2);
-    expect(repo.tripLabours.length, 2);
+    expect(repo.tripLabours.length, 3);
 
     // Verifying isolation
     expect(repo.works.any((w) => w.id == 'work_24_May_2026_Morning'), true);

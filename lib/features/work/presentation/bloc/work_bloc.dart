@@ -211,6 +211,7 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
           morningTripCount: morningTripCount,
           eveningTripCount: eveningTripCount,
           totalTrips: totalTrips,
+          searchQuery: _currentSearchQuery,
         ),
       );
     }
@@ -361,7 +362,16 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     LoadTripDetailsEvent event,
     Emitter<WorkState> emit,
   ) async {
+    // Retain the current work if it's currently DashboardLoaded
+    Work? currentWork;
+    if (state is DashboardLoaded) {
+      currentWork = (state as DashboardLoaded).currentWork;
+    } else if (state is TripDetailsLoaded) {
+      currentWork = (state as TripDetailsLoaded).work;
+    }
+
     emit(WorkLoading());
+
     final result = await getLaboursForTrip(event.tripId);
     await result.fold(
       (failure) async => emit(const WorkError('Failed to load trip details')),
@@ -371,7 +381,11 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
           (f) => emit(const WorkError('Failed to load labours')),
           (allLabours) {
             emit(
-              TripDetailsLoaded(tripLabours: tripLabours, labours: allLabours),
+              TripDetailsLoaded(
+                work: currentWork,
+                tripLabours: tripLabours,
+                labours: allLabours,
+              ),
             );
           },
         );
@@ -406,9 +420,25 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       await saveLabour(labour);
     }
 
-    // Delete old trip labours for this trip to prevent orphans when editing
-    // Wait, we don't have a usecase to delete TripLabours individually. We can just delete the whole trip then save it again? No, deleteTrip deletes the Trip too.
-    // Let's create DeleteTripLaboursForTripUseCase or just update the Datasource to clean it up.
+    // Soft delete missing labours
+    final existingLaboursResult = await getLaboursForTrip(event.trip.id);
+    await existingLaboursResult.fold((l) async {}, (existingLabours) async {
+      final newLabourIds = event.tripLabours.map((e) => e.labourId).toSet();
+      for (var existing in existingLabours) {
+        if (!newLabourIds.contains(existing.labourId)) {
+          // Soft delete by marking isPresent = false
+          await saveTripLabour(
+            TripLabour(
+              id: existing.id,
+              tripId: existing.tripId,
+              labourId: existing.labourId,
+              isPresent: false,
+            ),
+          );
+        }
+      }
+    });
+
     if (event.tripLabours.isNotEmpty) {
       await saveTripLabours(event.tripLabours);
     }

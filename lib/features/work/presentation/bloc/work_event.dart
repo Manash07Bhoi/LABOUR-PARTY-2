@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
-import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
-import 'package:labour_party/features/work/domain/entities/labour.dart';
 import 'package:labour_party/features/work/domain/entities/work.dart';
+import 'package:labour_party/features/work/domain/entities/labour.dart';
+import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 
-abstract class WorkEvent extends Equatable {
+sealed class WorkEvent extends Equatable {
   const WorkEvent();
   @override
   List<Object?> get props => [];
@@ -16,13 +16,6 @@ class LoadDashboardDataEvent extends WorkEvent {
   const LoadDashboardDataEvent(this.date, this.session);
   @override
   List<Object?> get props => [date, session];
-}
-
-class LoadTripDetailsEvent extends WorkEvent {
-  final String tripId;
-  const LoadTripDetailsEvent(this.tripId);
-  @override
-  List<Object?> get props => [tripId];
 }
 
 class AddQuickTripEvent extends WorkEvent {
@@ -44,6 +37,13 @@ class DeleteSpecificTripEvent extends WorkEvent {
   List<Object?> get props => [tripId];
 }
 
+class LoadTripDetailsEvent extends WorkEvent {
+  final String tripId;
+  const LoadTripDetailsEvent(this.tripId);
+  @override
+  List<Object?> get props => [tripId];
+}
+
 class SaveFullWorkTripEvent extends WorkEvent {
   final Work work;
   final Trip trip;
@@ -56,7 +56,6 @@ class SaveFullWorkTripEvent extends WorkEvent {
     required this.tripLabours,
     required this.labours,
   });
-
   @override
   List<Object?> get props => [work, trip, tripLabours, labours];
 }
@@ -78,7 +77,7 @@ class SaveLabourEvent extends WorkEvent {
 
 class UpdateTripLabourEvent extends WorkEvent {
   final TripLabour tripLabour;
-  const UpdateTripLabourEvent(this.tripLabour);
+  const UpdateTripLabourEvent({required this.tripLabour});
   @override
   List<Object?> get props => [tripLabour];
 }
@@ -86,7 +85,7 @@ class UpdateTripLabourEvent extends WorkEvent {
 class DeleteTripLabourEvent extends WorkEvent {
   final String id;
   final String tripId;
-  const DeleteTripLabourEvent(this.id, this.tripId);
+  const DeleteTripLabourEvent({required this.id, required this.tripId});
   @override
   List<Object?> get props => [id, tripId];
 }

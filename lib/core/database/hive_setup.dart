@@ -3,12 +3,14 @@ import 'package:labour_party/features/work/data/models/labour_model.dart';
 import 'package:labour_party/features/work/data/models/trip_labour_model.dart';
 import 'package:labour_party/features/work/data/models/trip_model.dart';
 import 'package:labour_party/features/work/data/models/work_model.dart';
+import 'package:labour_party/features/work/data/models/draft_model.dart';
 
 class HiveSetup {
   static const String workBox = 'work_box';
   static const String tripBox = 'trip_box';
   static const String labourBox = 'labour_box';
   static const String tripLabourBox = 'trip_labour_box';
+  static const String draftBox = 'draft_box';
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -17,10 +19,12 @@ class HiveSetup {
     Hive.registerAdapter(TripModelAdapter());
     Hive.registerAdapter(LabourModelAdapter());
     Hive.registerAdapter(TripLabourModelAdapter());
+    Hive.registerAdapter(DraftModelAdapter());
 
     await Hive.openBox<WorkModel>(workBox);
     await Hive.openBox<TripModel>(tripBox);
     await Hive.openBox<LabourModel>(labourBox);
     await Hive.openBox<TripLabourModel>(tripLabourBox);
+    await Hive.openBox<DraftModel>(draftBox);
   }
 }

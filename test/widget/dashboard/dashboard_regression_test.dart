@@ -5,7 +5,6 @@ import 'package:labour_party/features/dashboard/presentation/dashboard_screen.da
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
-import 'package:bloc/bloc.dart';
 
 class MockWorkBloc extends Bloc<WorkEvent, WorkState> implements WorkBloc {
   MockWorkBloc(super.initialState);

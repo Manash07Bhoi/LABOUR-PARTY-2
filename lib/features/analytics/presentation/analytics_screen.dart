@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/history_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/history_event.dart';
 import 'package:labour_party/features/work/presentation/bloc/history_state.dart';
-import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
+
 import 'package:labour_party/shared/widgets/empty_state.dart';
 import 'package:labour_party/shared/widgets/glass_card.dart';
 import 'package:labour_party/theme/app_theme.dart';

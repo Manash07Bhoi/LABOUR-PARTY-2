@@ -158,9 +158,19 @@ void main() {
     // Validate
     // Since we do soft deletes, we inserted 2 originally. In the edit, we passed only 1 (tl1_edit).
     // The missing one is soft-deleted. So the length is still 2!
-    expect(repo.tripLabours.length, 2); 
-    expect(repo.tripLabours.any((tl) => tl.labourId == 'l1' && tl.isPresent == false), true); 
-    expect(repo.tripLabours.any((tl) => tl.labourId == 'l2' && tl.isPresent == false), true); // l2 was soft deleted
+    expect(repo.tripLabours.length, 2);
+    expect(
+      repo.tripLabours.any(
+        (tl) => tl.labourId == 'l1' && tl.isPresent == false,
+      ),
+      true,
+    );
+    expect(
+      repo.tripLabours.any(
+        (tl) => tl.labourId == 'l2' && tl.isPresent == false,
+      ),
+      true,
+    ); // l2 was soft deleted
   });
 
   test('GATE 3: Date Isolation', () async {

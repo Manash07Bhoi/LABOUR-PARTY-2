@@ -21,6 +21,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late String _currentDate;
   late String _currentSession;
+  bool _isSearching = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -81,38 +83,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.asset(
-              'assets/branding/app_icon_192.png',
-              width: 32,
-              height: 32,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'Labour Party',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Search driver, tractor...',
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: InputBorder.none,
+                ),
+                onChanged: (val) {
+                  context.read<WorkBloc>().add(SearchDashboardEvent(val));
+                },
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/branding/app_icon_192.png',
+                    width: 32,
+                    height: 32,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Labour Party',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+        actions: [
+          IconButton(
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _isSearching = false;
+                  _searchController.clear();
+                  context.read<WorkBloc>().add(const SearchDashboardEvent(''));
+                } else {
+                  _isSearching = true;
+                }
+              });
+            },
+          ),
+        ],
       ),
       body: BlocBuilder<WorkBloc, WorkState>(
+        buildWhen: (previous, current) =>
+            current is DashboardLoaded ||
+            current is WorkLoading ||
+            current is WorkInitial ||
+            current is WorkEmpty ||
+            current is WorkError,
         builder: (context, state) {
           return switch (state) {
             WorkLoading() || WorkInitial() => _buildSkeleton(),
             WorkEmpty() => _buildEmptyState(),
-            DashboardLoaded() => _buildDashboard(state),
+            DashboardLoaded() => Builder(
+              builder: (ctx) {
+                // Sync local search controller with global state once on build if needed,
+                // but actually let's just use it in _buildDashboard
+                if (state.searchQuery.isNotEmpty &&
+                    _searchController.text.isEmpty &&
+                    !_isSearching) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      _isSearching = true;
+                      _searchController.text = state.searchQuery;
+                    });
+                  });
+                }
+                return _buildDashboard(state);
+              },
+            ),
+            TripDetailsLoaded() => const SizedBox.shrink(),
+            WorkActionSuccess() => const SizedBox.shrink(),
             WorkError(message: final message) => Center(
               child: Text(
                 message,
                 style: const TextStyle(color: AppTheme.errorColor),
               ),
             ),
-
-            TripDetailsLoaded() => _buildSkeleton(), // Recovering...
-            WorkActionSuccess() => _buildSkeleton(),
           };
         },
       ),

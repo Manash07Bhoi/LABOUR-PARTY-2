@@ -6,6 +6,7 @@ import 'package:labour_party/theme/app_theme.dart';
 import 'package:labour_party/core/database/hive_setup.dart';
 import 'package:labour_party/config/di/injection_container.dart' as di;
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
+import 'package:labour_party/features/work/presentation/bloc/history_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,10 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (_, child) {
         return MultiBlocProvider(
-          providers: [BlocProvider(create: (_) => di.sl<WorkBloc>())],
+          providers: [
+            BlocProvider(create: (_) => di.sl<WorkBloc>()),
+            BlocProvider(create: (_) => di.sl<HistoryBloc>()),
+          ],
           child: MaterialApp.router(
             title: 'Labour Party',
             theme: AppTheme.darkTheme,

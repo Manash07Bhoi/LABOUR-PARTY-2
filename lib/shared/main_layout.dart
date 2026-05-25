@@ -20,9 +20,14 @@ class MainLayout extends StatelessWidget {
             label: 'Dashboard',
           ),
           NavigationDestination(
-            icon: Icon(Icons.table_chart_outlined),
-            selectedIcon: Icon(Icons.table_chart),
-            label: 'Details',
+            icon: Icon(Icons.history_outlined),
+            selectedIcon: Icon(Icons.history),
+            label: 'History',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics),
+            label: 'Analytics',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
@@ -37,8 +42,9 @@ class MainLayout extends StatelessWidget {
   static int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/dashboard')) return 0;
-    if (location.startsWith('/details')) return 1;
-    if (location.startsWith('/settings')) return 2;
+    if (location.startsWith('/history')) return 1;
+    if (location.startsWith('/analytics')) return 2;
+    if (location.startsWith('/settings')) return 3;
     return 0;
   }
 
@@ -48,9 +54,12 @@ class MainLayout extends StatelessWidget {
         context.go('/dashboard');
         break;
       case 1:
-        context.go('/details');
+        context.go('/history');
         break;
       case 2:
+        context.go('/analytics');
+        break;
+      case 3:
         context.go('/settings');
         break;
     }

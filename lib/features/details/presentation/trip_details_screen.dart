@@ -5,6 +5,7 @@ import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
+import 'package:labour_party/features/work/presentation/screens/add_edit_work_screen.dart';
 import 'package:labour_party/features/work/domain/entities/labour.dart';
 import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 import 'package:labour_party/shared/widgets/glass_card.dart';
@@ -149,14 +150,34 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               // Edit trip requires work object! Let's fetch it via BLoC? No, we can just push to AddEdit.
               // Wait, AddEditWorkScreen requires the Work object?
               // The user said "Edit Trip" from this screen.
-              context.push(
-                '/add-edit-work',
-                extra: {
-                  'isNew': false,
-                  'editingTrip': widget.trip,
-                  'editingWork': null,
-                },
-              );
+              final state = context.read<WorkBloc>().state;
+              if (state is TripDetailsLoaded) {
+                final labourModels = state.tripLabours.map((tl) {
+                  final labour = state.labours.firstWhere(
+                    (l) => l.id == tl.labourId,
+                    orElse: () => Labour(
+                      id: '',
+                      name: 'Unknown',
+                      createdAt: DateTime.now(),
+                    ),
+                  );
+                  return LabourFormModel(
+                    labourId: labour.id,
+                    name: labour.name,
+                    isPresent: tl.isPresent,
+                  );
+                }).toList();
+
+                context.push(
+                  '/add-edit-work',
+                  extra: {
+                    'isNew': false,
+                    'editingTrip': widget.trip,
+                    'editingWork': state.work, // Passed from state
+                    'editingLabours': labourModels,
+                  },
+                );
+              }
             },
           ),
           IconButton(
@@ -166,6 +187,11 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         ],
       ),
       body: BlocBuilder<WorkBloc, WorkState>(
+        buildWhen: (previous, current) =>
+            current is TripDetailsLoaded ||
+            current is WorkLoading ||
+            current is WorkInitial ||
+            current is WorkError,
         builder: (context, state) {
           return switch (state) {
             WorkLoading() || WorkInitial() => const Center(
@@ -254,13 +280,78 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                                   : TextDecoration.lineThrough,
                             ),
                           ),
-                          trailing: Icon(
-                            entry.value.isPresent
-                                ? Icons.check_circle
-                                : Icons.cancel,
-                            color: entry.value.isPresent
-                                ? AppTheme.successColor
-                                : AppTheme.errorColor,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.white54,
+                                ),
+                                onPressed: () {
+                                  final labour = allLabours.firstWhere(
+                                    (l) => l.id == entry.value.labourId,
+                                  );
+                                  editLabourDialog(labour);
+                                },
+                              ),
+                              Switch(
+                                value: entry.value.isPresent,
+                                activeTrackColor: AppTheme.successColor
+                                    .withAlpha(100),
+                                // ignore: deprecated_member_use
+                                activeColor: AppTheme.successColor,
+                                onChanged: (val) {
+                                  final updated = TripLabour(
+                                    id: entry.value.id,
+                                    tripId: entry.value.tripId,
+                                    labourId: entry.value.labourId,
+                                    isPresent: val,
+                                  );
+                                  context.read<WorkBloc>().add(
+                                    UpdateTripLabourEvent(tripLabour: updated),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.remove_circle_outline,
+                                  color: AppTheme.errorColor,
+                                ),
+                                onPressed: () {
+                                  // Soft delete -> hard delete logic
+                                  // PRD says: "Delete rules: if persisted: soft delete -> save. if unsaved: remove immediately"
+                                  // For inline, all are persisted. So we first soft-delete, or if they click remove, we can hard-delete with an Undo snackbar.
+                                  // Let's hard-delete with undo. Wait, "undo remove" is required.
+                                  final tl = entry.value;
+                                  context.read<WorkBloc>().add(
+                                    DeleteTripLabourEvent(
+                                      id: tl.id,
+                                      tripId: tl.tripId,
+                                    ),
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: const Text('Labour removed'),
+                                      action: SnackBarAction(
+                                        label: 'Undo',
+                                        onPressed: () {
+                                          final labour = allLabours.firstWhere(
+                                            (l) => l.id == tl.labourId,
+                                          );
+                                          context.read<WorkBloc>().add(
+                                            SaveTripLabourEvent(
+                                              tripLabour: tl,
+                                              labour: labour,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
@@ -275,12 +366,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             ),
             WorkEmpty() ||
             DashboardLoaded() ||
-            WorkActionSuccess() => const Center(
-              child: Text(
-                'Unexpected state in TripDetails',
-                style: TextStyle(color: AppTheme.errorColor),
-              ),
-            ),
+            WorkActionSuccess() => const SizedBox.shrink(),
           };
         },
       ),

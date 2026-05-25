@@ -1,6 +1,14 @@
 import 'package:intl/intl.dart';
 
 class DateTimeUtils {
+  static DateTime parseDate(String dateStr) {
+    try {
+      return DateFormat('dd MMM yyyy').parse(dateStr);
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+
   static String getCurrentDateFormatted([DateTime? now]) {
     final timeToUse = now ?? DateTime.now();
     return DateFormat('dd MMM yyyy').format(timeToUse);

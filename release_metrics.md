@@ -3,3 +3,4 @@
 - Status: Release build succeeded.
 - Tests: 56/56 passing.
 - Code issues: 0 unresolved analyzer errors.
+- APK Size: 53.2MB

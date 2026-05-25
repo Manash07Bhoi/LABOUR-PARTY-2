@@ -14,7 +14,11 @@
 
 ## 4. Date Isolation & Local Storage
 **Root Cause:** The absence of a `HistoryScreen` meant old data was unreachable, presenting the illusion of data loss. Furthermore, edits without the parent `Work` object shifted old records to the current date.
+<<<<<<< HEAD
 **Fix:** Created `HistoryScreen` mapping data by date and session. Editing operations are strictly validated against their original dates.
+=======
+**Fix:** Created `HistoryScreen` mapping data by date and session. Editing operations are strictly validated against their original dates. 
+>>>>>>> jules-18240070359165854260-964ecb4c-final
 
 ## 5. Search & Filters
 **Root Cause:** Search state (`_currentSearchQuery`) was retained in `WorkBloc` but was visually decoupled from the UI input controllers upon navigation.
@@ -28,7 +32,11 @@
 
 ## APK Install Conflict
 **Root Cause:**
+<<<<<<< HEAD
 Android strict security architecture verifies matching certificate fingerprints when applying app updates via `adb install` or OTA.
+=======
+Android strict security architecture verifies matching certificate fingerprints when applying app updates via `adb install` or OTA. 
+>>>>>>> jules-18240070359165854260-964ecb4c-final
 The conflict arises because the original RC-1.1 release APK was compiled and signed using a specific, proprietary `key.properties` configuration and a corresponding `.jks` Keystore. Because these sensitive files are correctly Git-ignored, the local compilation generates a mismatched signature.
 
 ### Mismatch Matrix
@@ -41,7 +49,11 @@ The conflict arises because the original RC-1.1 release APK was compiled and sig
 | `Build Variant` | Release | Release | PASS |
 
 ### Migration & Upgrade Path
+<<<<<<< HEAD
 **Upgrade path is impossible without the original release keystore.**
+=======
+**Upgrade path is impossible without the original release keystore.** 
+>>>>>>> jules-18240070359165854260-964ecb4c-final
 
 **Controlled Migration Instructions:**
 1. Export existing user data using the in-app Backup feature (generates JSON payload).

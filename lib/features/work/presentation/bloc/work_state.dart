@@ -21,6 +21,7 @@ class DashboardLoaded extends WorkState {
   final int morningTripCount;
   final int eveningTripCount;
   final int totalTrips;
+  final String searchQuery;
 
   const DashboardLoaded({
     this.currentWork,
@@ -29,6 +30,7 @@ class DashboardLoaded extends WorkState {
     required this.morningTripCount,
     required this.eveningTripCount,
     required this.totalTrips,
+    this.searchQuery = '',
   });
 
   @override
@@ -43,12 +45,17 @@ class DashboardLoaded extends WorkState {
 }
 
 class TripDetailsLoaded extends WorkState {
+  final Work? work; // Added Work to TripDetailsLoaded
   final List<TripLabour> tripLabours;
   final List<Labour> labours;
-  const TripDetailsLoaded({required this.tripLabours, required this.labours});
+  const TripDetailsLoaded({
+    this.work,
+    required this.tripLabours,
+    required this.labours,
+  });
 
   @override
-  List<Object?> get props => [tripLabours, labours];
+  List<Object?> get props => [work, tripLabours, labours];
 }
 
 class WorkEmpty extends WorkState {

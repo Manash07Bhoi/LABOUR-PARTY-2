@@ -17,7 +17,6 @@ class DetailsScreen extends StatefulWidget {
 }
 
 class _DetailsScreenState extends State<DetailsScreen> {
-  String _searchQuery = '';
   bool _isSearching = false;
 
   @override
@@ -80,11 +79,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   hintStyle: TextStyle(color: Colors.white54),
                   border: InputBorder.none,
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.toLowerCase();
-                  });
-                },
+                onChanged: (value) {},
               )
             : const Text('Work Details'),
         actions: [
@@ -92,9 +87,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
             icon: Icon(_isSearching ? Icons.close : Icons.search),
             onPressed: () {
               setState(() {
-                if (_isSearching) {
-                  _searchQuery = '';
-                }
+                if (_isSearching) {}
                 _isSearching = !_isSearching;
               });
             },
@@ -103,14 +96,16 @@ class _DetailsScreenState extends State<DetailsScreen> {
         ],
       ),
       body: BlocBuilder<WorkBloc, WorkState>(
+        buildWhen: (previous, current) =>
+            current is DashboardLoaded ||
+            current is WorkLoading ||
+            current is WorkInitial ||
+            current is WorkEmpty ||
+            current is WorkError,
         builder: (context, state) {
           return switch (state) {
             DashboardLoaded() => () {
-              final filteredTrips = state.currentTrips.where((trip) {
-                return trip.driverName.toLowerCase().contains(_searchQuery) ||
-                    trip.tractor.toLowerCase().contains(_searchQuery) ||
-                    trip.tripNumber.toString().contains(_searchQuery);
-              }).toList();
+              final filteredTrips = state.currentTrips;
 
               if (filteredTrips.isEmpty) {
                 return const Center(
@@ -145,12 +140,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 style: const TextStyle(color: Colors.white54),
               ),
             ),
-            _ => const Center(
-              child: Text(
-                'Unexpected state in DetailsScreen',
-                style: TextStyle(color: AppTheme.errorColor),
-              ),
-            ),
+            TripDetailsLoaded() => const SizedBox.shrink(),
+            WorkActionSuccess() => const SizedBox.shrink(),
           };
         },
       ),

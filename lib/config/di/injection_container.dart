@@ -10,11 +10,14 @@ import 'package:labour_party/features/work/data/repositories/work_repository_imp
 import 'package:labour_party/features/work/domain/repositories/work_repository.dart';
 import 'package:labour_party/features/work/domain/usecases/work_usecases.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
+import 'package:labour_party/features/work/presentation/bloc/history_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
   // Blocs
+  sl.registerFactory(() => HistoryBloc(getWorks: sl(), getTripsForWork: sl()));
+
   sl.registerFactory(
     () => WorkBloc(
       getWorks: sl(),

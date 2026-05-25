@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:labour_party/core/database/hive_setup.dart';
 import 'package:labour_party/core/utils/date_time_utils.dart';
+import 'package:labour_party/features/work/data/models/draft_model.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 import 'package:labour_party/features/work/domain/entities/labour.dart';
@@ -43,7 +47,8 @@ class AddEditWorkScreen extends StatefulWidget {
   State<AddEditWorkScreen> createState() => _AddEditWorkScreenState();
 }
 
-class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
+class _AddEditWorkScreenState extends State<AddEditWorkScreen>
+    with WidgetsBindingObserver {
   final _formKey = GlobalKey<FormState>();
   late String _date;
   late String _session;
@@ -65,6 +70,11 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
       _workTypeController.text = widget.editingWork!.workType;
       _placeController.text = widget.editingWork!.place;
     } else {
+      if (widget.editingTrip != null) {
+        throw Exception(
+          "editingWork must be provided when editingTrip is provided to preserve date isolation.",
+        );
+      }
       _date = DateTimeUtils.getCurrentDateFormatted();
       _session = DateTimeUtils.getCurrentSession();
     }
@@ -75,6 +85,104 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
     }
 
     _loadInitialData();
+    WidgetsBinding.instance.addObserver(this);
+    _checkDraft();
+    _workTypeController.addListener(_saveDraft);
+    _placeController.addListener(_saveDraft);
+    _tractorController.addListener(_saveDraft);
+    _driverController.addListener(_saveDraft);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _workTypeController.dispose();
+    _placeController.dispose();
+    _tractorController.dispose();
+    _driverController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _saveDraft();
+    }
+  }
+
+  void _saveDraft() {
+    if (widget.editingTrip != null) return; // Only save draft for new trips
+    final box = Hive.box<DraftModel>(HiveSetup.draftBox);
+    final encodedLabours = jsonEncode(
+      _currentLabours
+          .map(
+            (l) => {
+              'labourId': l.labourId,
+              'name': l.name,
+              'isPresent': l.isPresent,
+            },
+          )
+          .toList(),
+    );
+    final draft = DraftModel(
+      date: _date,
+      session: _session,
+      workType: _workTypeController.text,
+      place: _placeController.text,
+      tractor: _tractorController.text,
+      driverName: _driverController.text,
+      encodedLabours: encodedLabours,
+    );
+    box.put('current_draft', draft);
+  }
+
+  void _clearDraft() {
+    final box = Hive.box<DraftModel>(HiveSetup.draftBox);
+    box.delete('current_draft');
+  }
+
+  void _checkDraft() {
+    if (widget.editingTrip != null) return;
+    final box = Hive.box<DraftModel>(HiveSetup.draftBox);
+    final draft = box.get('current_draft');
+    if (draft != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('You have an unsaved draft.'),
+            duration: const Duration(seconds: 10),
+            action: SnackBarAction(
+              label: 'Restore',
+              onPressed: () {
+                setState(() {
+                  _date = draft.date;
+                  _session = draft.session;
+                  _workTypeController.text = draft.workType;
+                  _placeController.text = draft.place;
+                  _tractorController.text = draft.tractor;
+                  _driverController.text = draft.driverName;
+                  try {
+                    final decoded = jsonDecode(draft.encodedLabours) as List;
+                    _currentLabours.clear();
+                    _currentLabours.addAll(
+                      decoded.map(
+                        (e) => LabourFormModel(
+                          labourId: e['labourId'],
+                          name: e['name'],
+                          isPresent: e['isPresent'],
+                        ),
+                      ),
+                    );
+                  } catch (_) {}
+                });
+              },
+            ),
+          ),
+        );
+      });
+    }
   }
 
   void _loadInitialData() {
@@ -82,7 +190,6 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
       _currentLabours.addAll(widget.editingLabours!);
     }
     final state = context.read<WorkBloc>().state;
-    // Only autofill if we are NOT editing
     if (widget.editingTrip == null &&
         widget.editingWork == null &&
         state is DashboardLoaded) {
@@ -133,6 +240,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
                         isPresent: true,
                       ),
                     );
+                    _saveDraft();
                   });
                 }
                 Navigator.pop(ctx);
@@ -157,9 +265,9 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
         return;
       }
 
+      _clearDraft();
       final workBloc = context.read<WorkBloc>();
 
-      // Enforce deterministic ID based on date and session to prevent cross-day leakage and orphans
       final String safeDateId = _date.replaceAll(' ', '_');
       final workId = widget.editingWork?.id ?? 'work_${safeDateId}_$_session';
       final tripId = widget.editingTrip?.id ?? _uuid.v4();
@@ -219,7 +327,10 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
         title: const Text('Add Trip'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            _saveDraft();
+            context.pop();
+          },
         ),
       ),
       body: BlocListener<WorkBloc, WorkState>(
@@ -497,6 +608,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
                     onChanged: (val) {
                       setState(() {
                         _currentLabours[idx].isPresent = val;
+                        _saveDraft();
                       });
                     },
                   ),
@@ -508,6 +620,7 @@ class _AddEditWorkScreenState extends State<AddEditWorkScreen> {
                     onPressed: () {
                       setState(() {
                         _currentLabours.removeAt(idx);
+                        _saveDraft();
                       });
                     },
                   ),

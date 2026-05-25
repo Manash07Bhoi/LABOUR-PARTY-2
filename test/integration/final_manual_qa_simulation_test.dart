@@ -124,8 +124,14 @@ void main() {
       repo.tripLabours.length,
       2,
     ); // TripLabour soft deletes old record (isPresent=false), keeps new one
-    expect(repo.tripLabours.any((tl) => tl.labourId == 'l2' && tl.isPresent), true);
-    expect(repo.tripLabours.any((tl) => tl.labourId == 'l1' && !tl.isPresent), true);
+    expect(
+      repo.tripLabours.any((tl) => tl.labourId == 'l2' && tl.isPresent),
+      true,
+    );
+    expect(
+      repo.tripLabours.any((tl) => tl.labourId == 'l1' && !tl.isPresent),
+      true,
+    );
 
     // Scenario C: Multi-Day Isolation
     final work2 = Work(

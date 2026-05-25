@@ -12,6 +12,31 @@ sealed class WorkState extends Equatable {
 
 class WorkInitial extends WorkState {}
 
+class NavigateToConfirmNextTripState extends WorkState {
+  final Work work;
+  final int nextTripNumber;
+  final List<TripLabour> previousLabours;
+  final String place;
+  final String workType;
+
+  const NavigateToConfirmNextTripState({
+    required this.work,
+    required this.nextTripNumber,
+    required this.previousLabours,
+    required this.place,
+    required this.workType,
+  });
+
+  @override
+  List<Object?> get props => [
+    work,
+    nextTripNumber,
+    previousLabours,
+    place,
+    workType,
+  ];
+}
+
 class WorkLoading extends WorkState {}
 
 class DashboardLoaded extends WorkState {

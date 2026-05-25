@@ -10,6 +10,7 @@ import 'package:labour_party/features/work/domain/entities/trip.dart';
 import 'package:labour_party/features/details/presentation/details_screen.dart';
 import 'package:labour_party/features/settings/presentation/settings_screen.dart';
 import 'package:labour_party/features/work/presentation/screens/add_edit_work_screen.dart';
+import 'package:labour_party/features/work/presentation/screens/confirm_next_trip_screen.dart';
 import 'package:labour_party/shared/main_layout.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -58,6 +59,19 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final isNew = (state.extra as Map<String, dynamic>?)?['isNew'] ?? true;
         return AddEditWorkScreen(isNew: isNew);
+      },
+    ),
+    GoRoute(
+      path: '/confirm-next-trip',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return ConfirmNextTripScreen(
+          work: extra['work'],
+          nextTripNumber: extra['nextTripNumber'],
+          previousLabours: extra['previousLabours'],
+          place: extra['place'],
+          workType: extra['workType'],
+        );
       },
     ),
   ],

@@ -4,8 +4,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:labour_party/core/utils/date_time_utils.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
+import 'package:uuid/uuid.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
+import 'package:labour_party/features/work/domain/entities/work.dart';
+import 'package:labour_party/features/work/presentation/screens/confirm_next_trip_screen.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:labour_party/core/database/hive_setup.dart';
+import 'package:labour_party/features/work/data/models/labour_model.dart';
 import 'package:labour_party/shared/widgets/empty_state.dart';
 import 'package:labour_party/shared/widgets/glass_card.dart';
 import 'package:labour_party/shared/widgets/skeleton_loading.dart';
@@ -36,7 +42,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _onAddQuickTrip() {
     context.read<WorkBloc>().add(
-      AddQuickTripEvent(date: _currentDate, session: _currentSession),
+      NavigateToConfirmNextTripEvent(
+        date: _currentDate,
+        session: _currentSession,
+      ),
     );
   }
 
@@ -128,7 +137,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: BlocBuilder<WorkBloc, WorkState>(
+      body: BlocConsumer<WorkBloc, WorkState>(
+        listener: (context, state) async {
+          if (state is NavigateToConfirmNextTripState) {
+            // We need to get names for the labours. We can fetch them via a direct Hive box access or similar,
+            // since this is just UI routing mapping. Since we use Clean Architecture, ideally BLoC should send Labour models.
+            // Let's rely on the injected repository or just map it as best we can for now. We can fetch the box:
+            final labourBox = Hive.box<LabourModel>(HiveSetup.labourBox);
+            context.push(
+              '/confirm-next-trip',
+              extra: {
+                'work': state.work,
+                'nextTripNumber': state.nextTripNumber,
+                'previousLabours': state.previousLabours.map((tl) {
+                  final labourModel = labourBox.get(tl.labourId);
+                  return LabourFormModel(
+                    labourId: tl.labourId,
+                    name: labourModel?.name ?? 'Unknown',
+                    isPresent: tl.isPresent,
+                  );
+                }).toList(),
+                'place': state.place,
+                'workType': state.workType,
+              },
+            );
+          }
+        },
         buildWhen: (previous, current) =>
             current is DashboardLoaded ||
             current is WorkLoading ||
@@ -139,6 +173,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           return switch (state) {
             WorkLoading() || WorkInitial() => _buildSkeleton(),
             WorkEmpty() => _buildEmptyState(),
+            WorkError(message: final message) => Center(
+              child: Text(
+                message,
+                style: const TextStyle(color: AppTheme.errorColor),
+              ),
+            ),
+            NavigateToConfirmNextTripState() ||
+            WorkActionSuccess() ||
+            TripDetailsLoaded() => const SizedBox.shrink(),
             DashboardLoaded() => Builder(
               builder: (ctx) {
                 // Sync local search controller with global state once on build if needed,
@@ -155,14 +198,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 }
                 return _buildDashboard(state);
               },
-            ),
-            TripDetailsLoaded() => const SizedBox.shrink(),
-            WorkActionSuccess() => const SizedBox.shrink(),
-            WorkError(message: final message) => Center(
-              child: Text(
-                message,
-                style: const TextStyle(color: AppTheme.errorColor),
-              ),
             ),
           };
         },

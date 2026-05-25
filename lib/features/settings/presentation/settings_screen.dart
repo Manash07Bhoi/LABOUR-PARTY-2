@@ -100,8 +100,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _backupDatabase() async {
     setState(() => _isLoading = true);
     try {
-      final selectedDirectory = await FilePicker.platform.getDirectoryPath();
-      if (selectedDirectory != null) {
+      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final String? selectedFilePath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Save Backup',
+        fileName: 'labour_backup_$timestamp.labourbackup',
+      );
+
+      if (selectedFilePath != null) {
+        String finalFilePath = selectedFilePath;
+        if (!finalFilePath.endsWith('.labourbackup')) {
+          finalFilePath += '.labourbackup';
+        }
         final workBox = Hive.box<WorkModel>(HiveSetup.workBox);
         final tripBox = Hive.box<TripModel>(HiveSetup.tripBox);
         final labourBox = Hive.box<LabourModel>(HiveSetup.labourBox);
@@ -136,6 +145,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     "tractor": t.tractor,
                     "driverName": t.driverName,
                     "createdAt": t.createdAt.toIso8601String(),
+                    "place": t.place,
+                    "workType": t.workType,
+                    "notes": t.notes,
+                    "updatedAt": t.updatedAt?.toIso8601String(),
+                    "status": t.status,
                   },
                 )
                 .toList(),
@@ -163,17 +177,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         };
 
         final jsonString = jsonEncode(backupData);
-        final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-        final destFile = File(
-          '$selectedDirectory/labour_backup_$timestamp.labourbackup',
-        );
+        final destFile = File(finalFilePath);
         await destFile.writeAsString(jsonString);
 
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Backup successful!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Backup successful! Saved to $finalFilePath'),
+            ),
+          );
         }
+      } else {
+        // User canceled
       }
     } catch (e) {
       if (mounted) {
@@ -209,13 +224,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _restoreDatabase() async {
     setState(() => _isLoading = true);
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['labourbackup'],
-      );
+      final result = await FilePicker.platform.pickFiles(type: FileType.any);
 
       if (result != null && result.files.single.path != null) {
         final backupPath = result.files.single.path!;
+
+        if (!backupPath.toLowerCase().endsWith('.labourbackup')) {
+          setState(() => _isLoading = false);
+          _showErrorDialog(
+            "Invalid File",
+            "Please select a valid .labourbackup file.",
+          );
+          return;
+        }
 
         Map<String, dynamic> backupData;
         try {
@@ -248,6 +269,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final laboursList = data['labours'] as List;
         final tripLaboursList = data['tripLabours'] as List;
 
+        final fileSize = await File(backupPath).length();
+        final fileSizeMb = (fileSize / (1024 * 1024)).toStringAsFixed(2);
+
         if (mounted) {
           final confirm = await showDialog<bool>(
             context: context,
@@ -263,6 +287,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     'Backup Date: ${DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.parse(backupData['createdAt']))}',
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  Text(
+                    'File Size: $fileSizeMb MB',
                     style: const TextStyle(color: Colors.white70),
                   ),
                   const SizedBox(height: 8),
@@ -353,6 +381,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     tractor: t['tractor'],
                     driverName: t['driverName'],
                     createdAt: DateTime.parse(t['createdAt']),
+                    place: t['place'] ?? '',
+                    workType: t['workType'] ?? 'Sand (Bali)',
+                    notes: t['notes'] ?? '',
+                    updatedAt: t['updatedAt'] != null
+                        ? DateTime.parse(t['updatedAt'])
+                        : null,
+                    status: t['status'] ?? 'Completed',
                   ),
                 );
               }

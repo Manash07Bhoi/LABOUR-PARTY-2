@@ -26,6 +26,29 @@ class AddQuickTripEvent extends WorkEvent {
   List<Object?> get props => [date, session];
 }
 
+class NavigateToConfirmNextTripEvent extends WorkEvent {
+  final String date;
+  final String session;
+
+  const NavigateToConfirmNextTripEvent({
+    required this.date,
+    required this.session,
+  });
+
+  @override
+  List<Object?> get props => [date, session];
+}
+
+class SaveNextTripEvent extends WorkEvent {
+  final Trip trip;
+  final List<TripLabour> tripLabours;
+
+  const SaveNextTripEvent({required this.trip, required this.tripLabours});
+
+  @override
+  List<Object?> get props => [trip, tripLabours];
+}
+
 class RemoveLatestTripEvent extends WorkEvent {
   const RemoveLatestTripEvent();
 }

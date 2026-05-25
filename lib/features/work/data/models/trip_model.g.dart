@@ -23,13 +23,18 @@ class TripModelAdapter extends TypeAdapter<TripModel> {
       tractor: fields[3] as String,
       driverName: fields[4] as String,
       createdAt: fields[5] as DateTime,
+      place: fields[6] == null ? '' : fields[6] as String,
+      workType: fields[7] == null ? 'Sand (Bali)' : fields[7] as String,
+      notes: fields[8] == null ? '' : fields[8] as String,
+      updatedAt: fields[9] as DateTime?,
+      status: fields[10] == null ? 'Completed' : fields[10] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, TripModel obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -41,7 +46,17 @@ class TripModelAdapter extends TypeAdapter<TripModel> {
       ..writeByte(4)
       ..write(obj.driverName)
       ..writeByte(5)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(6)
+      ..write(obj.place)
+      ..writeByte(7)
+      ..write(obj.workType)
+      ..writeByte(8)
+      ..write(obj.notes)
+      ..writeByte(9)
+      ..write(obj.updatedAt)
+      ..writeByte(10)
+      ..write(obj.status);
   }
 
   @override

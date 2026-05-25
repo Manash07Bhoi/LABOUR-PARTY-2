@@ -6,6 +6,7 @@ import 'package:labour_party/features/work/presentation/bloc/work_bloc.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_state.dart';
 import 'package:labour_party/features/work/presentation/bloc/work_event.dart';
 import 'package:labour_party/features/work/domain/entities/trip.dart';
+import 'package:labour_party/features/work/domain/entities/work.dart';
 import 'package:labour_party/features/work/domain/entities/labour.dart';
 import 'package:labour_party/features/work/domain/entities/trip_labour.dart';
 
@@ -60,6 +61,20 @@ void main() {
       tractor: 'T1',
       driverName: 'D1',
       createdAt: DateTime.now(),
+      place: 'Location',
+      workType: 'Sand',
+      notes: 'Test Notes',
+      updatedAt: DateTime.now(),
+      status: 'Completed',
+    );
+    final work = Work(
+      id: 'w1',
+      date: '01 Jan 2024',
+      session: 'Morning',
+      workType: 'Sand',
+      place: 'Location',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
     final labour = Labour(
       id: 'l1',
@@ -74,7 +89,11 @@ void main() {
     );
 
     final bloc = MockWorkBloc(
-      TripDetailsLoaded(tripLabours: [tripLabour], labours: [labour]),
+      TripDetailsLoaded(
+        tripLabours: [tripLabour],
+        labours: [labour],
+        work: work,
+      ),
     );
 
     await tester.pumpWidget(
@@ -86,7 +105,14 @@ void main() {
       ),
     );
 
-    expect(find.text('John Doe'), findsOneWidget);
-    expect(find.byIcon(Icons.remove_circle_outline), findsOneWidget);
+    await tester.pumpAndSettle();
+
+    final johnDoeFinder = find.text('John Doe', skipOffstage: false);
+
+    expect(johnDoeFinder, findsOneWidget);
+    expect(
+      find.byIcon(Icons.remove_circle_outline, skipOffstage: false),
+      findsOneWidget,
+    );
   });
 }

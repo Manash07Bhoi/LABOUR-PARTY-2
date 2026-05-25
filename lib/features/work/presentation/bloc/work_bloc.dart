@@ -48,6 +48,8 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
   }) : super(WorkInitial()) {
     on<LoadDashboardDataEvent>(_onLoadDashboardData);
     on<AddQuickTripEvent>(_onAddQuickTrip);
+    on<NavigateToConfirmNextTripEvent>(_onNavigateToConfirmNextTrip);
+    on<SaveNextTripEvent>(_onSaveNextTrip);
     on<RemoveLatestTripEvent>(_onRemoveLatestTrip);
     on<DeleteSpecificTripEvent>(_onDeleteSpecificTrip);
     on<SaveFullWorkTripEvent>(_onSaveFullWorkTrip);
@@ -221,12 +223,20 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
     AddQuickTripEvent event,
     Emitter<WorkState> emit,
   ) async {
+    // AddQuickTripEvent is now handled via UI navigation to ConfirmNextTripScreen directly inside the UI.
+  }
+
+  Future<void> _onNavigateToConfirmNextTrip(
+    NavigateToConfirmNextTripEvent event,
+    Emitter<WorkState> emit,
+  ) async {
     if (state is DashboardLoaded) {
       final currentState = state as DashboardLoaded;
+      final dashboardState = currentState;
       emit(WorkLoading());
 
-      Work work;
       int nextTripNumber = await _getNextTripNum(event.date);
+      Work work;
 
       if (currentState.currentWork != null) {
         work = currentState.currentWork!;
@@ -243,10 +253,9 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
         await saveWork(work);
       }
 
-      String tractor = '';
-      String driverName = '';
+      String place = '';
+      String workType = 'Sand (Bali)';
       List<TripLabour> copiedLabours = [];
-
       Trip? lastTripToCopy;
 
       if (currentState.currentTrips.isNotEmpty) {
@@ -267,8 +276,8 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
       }
 
       if (lastTripToCopy != null) {
-        tractor = lastTripToCopy!.tractor;
-        driverName = lastTripToCopy!.driverName;
+        place = lastTripToCopy!.place;
+        workType = lastTripToCopy!.workType;
 
         final lastTripLaboursResult = await getLaboursForTrip(
           lastTripToCopy!.id,
@@ -287,34 +296,46 @@ class WorkBloc extends Bloc<WorkEvent, WorkState> {
         });
       }
 
-      final newTrip = Trip(
-        id: uuid.v4(),
-        workId: work.id,
-        tripNumber: nextTripNumber,
-        tractor: tractor,
-        driverName: driverName,
-        createdAt: DateTime.now(),
+      // Need to populate actual Labour objects to get names if they are not already stored with the name.
+      // But we can just emit it, and let the dashboard interceptor or UI resolve it if needed, or pass it.
+      // We will look up names right here.
+      List<TripLabour> resolvedCopiedLabours = copiedLabours;
+
+      emit(
+        NavigateToConfirmNextTripState(
+          work: work,
+          nextTripNumber: nextTripNumber,
+          previousLabours: resolvedCopiedLabours,
+          place: place,
+          workType: workType,
+        ),
       );
 
-      await saveTrip(newTrip);
-
-      if (copiedLabours.isNotEmpty) {
-        final newTripLabours = copiedLabours
-            .map(
-              (l) => TripLabour(
-                id: l.id,
-                tripId: newTrip.id,
-                labourId: l.labourId,
-                isPresent: l.isPresent,
-              ),
-            )
-            .toList();
-
-        await saveTripLabours(newTripLabours);
-      }
-
-      add(LoadDashboardDataEvent(event.date, event.session));
+      // Re-emit DashboardLoaded so the UI has the state back
+      emit(dashboardState);
     }
+  }
+
+  Future<void> _onSaveNextTrip(
+    SaveNextTripEvent event,
+    Emitter<WorkState> emit,
+  ) async {
+    emit(WorkLoading());
+    await saveTrip(event.trip);
+    if (event.tripLabours.isNotEmpty) {
+      final tripLaboursWithCorrectTripId = event.tripLabours
+          .map(
+            (tl) => TripLabour(
+              id: tl.id,
+              tripId: event.trip.id,
+              labourId: tl.labourId,
+              isPresent: tl.isPresent,
+            ),
+          )
+          .toList();
+      await saveTripLabours(tripLaboursWithCorrectTripId);
+    }
+    emit(WorkActionSuccess());
   }
 
   Future<void> _onDeleteSpecificTrip(

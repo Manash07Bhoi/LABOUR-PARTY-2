@@ -1,29 +1,29 @@
-# Release Notes - RC-1.2
+# Release Notes - RC-1.3 (Final Candidate)
 
 ## Executive Summary
-This release completes the stabilization of RC-1.2. The core focus was resolving structural bugs from the previous candidate related to data integrity, offline continuity, and application state behavior during navigation and editing.
+This release completes the final stabilization of RC-1.3. It focuses on resolving final UX regressions and offline safety protocols, particularly concerning sequential trip appending and scoped storage backup restrictions.
 
 ## Changes
-- **Dashboard Stability**: Removed "Unexpected State" fallbacks across the main screens. State updates now explicitly filter unrelated BLoC emissions using strictly bound `buildWhen` logic.
-- **Date Integrity**: Implemented hard validations to block `AddEditWorkScreen` from defaulting to `DateTime.now()` on historical trip edits, successfully resolving cross-day data pollution.
-- **Labour Persistence**: Expanded inline editing controls inside `TripDetailsScreen`, supporting attendance toggles, soft-deletes (`isPresent = false`), and hard removal paired with an `Undo` Snackbar.
-- **Draft Autosave**: Integrated `draftBox` via Hive. Unsaved edits to trips dynamically cache during background operations and text field updates, triggering a restoration banner upon application resume. Successful saves correctly wipe the draft entries.
-- **History & Analytics**: Shipped fully operational `HistoryScreen` displaying collapsible trip segments by date and session. Delivered an `AnalyticsScreen` projecting offline KPIs and Data Tables synthesized locally from the history cache.
-- **Search Propagation**: Global search strings persist intelligently via native State syncing preventing standalone `SearchBloc` memory bloat.
+- **Confirm Next Trip Flow**: Introduced `ConfirmNextTripScreen` isolating sequential trip creations from deep-edits. Deep clones the last trip's configuration but safely isolates metadata, actively preventing duplicate writes or state bleeding.
+- **Trip Metadata Expansion**: Upgraded the core `Trip` domain schema and `TripModel` to include: `Place`, `WorkType`, `Notes`, `Status`, and timestamp telemetry (`updatedAt`). Fully preserves backwards compatibility with default values for legacy DB entries.
+- **Trip Details Expansion**: Expanded `TripDetailsScreen` UI architecture mapping the newly introduced fields inline while retaining a calculated-only `Duration` string. Handles empty inputs gracefully displaying 'Not specified'.
+- **Safe Storage Backups**: Migrated offline exports off native direct directory writes, replacing them with Scoped Storage / SAF-compatible `saveFile` prompts natively handling extensions (`.labourbackup`) cleanly across Android 11+.
+- **Validated Restorations**: Implemented file-picker `FileType.any` with robust manual `.labourbackup` validation logic filtering corrupted files safely via dialog feedback before destructive Hive wipes.
 
 ## Technical Decisions
-- **Soft Deletions**: Decided to utilize `isPresent = false` for labour attendance logic during edit events to preserve structural associations in Hive rather than destructive queries.
-- **Aggregated Offline Rendering**: Analytics metrics construct entirely from locally cached historical segments without triggering nested or duplicate `Hive` queries.
+- **Next Trip Deep Cloning**: `ConfirmNextTripScreen` physically deep-copies `TripLabour` associations instead of referencing old pointers ensuring complete independence of new entries natively via Dart memory models.
+- **Migration Schema Fallbacks**: Legacy `TripModel` records automatically hydrate default fields using `@HiveField` defaults. This prevents destructive wipe behaviors during database upgrades directly supporting continuity.
+- **Target Platform Build Output**: APK bloat reduced via explicitly targeting `android-arm64`, dropping APK payload footprint drastically.
 
 ## Risk Assessment
-- **APK Continuity Conflict**: Updating from RC-1.1 will fail natively via Android's package manager due to misaligned `.jks` Keystore fingerprints absent from the repository.
+- **APK Continuity Conflict**: Updating from RC-1.1 / RC-1.2 continues to fail cleanly due to misaligned `.jks` Keystore fingerprints absent from the repository. Adhere to documented data migration patterns.
 
 ## Migration Path
 Administrators performing the upgrade must utilize the in-app backup/restore functionality:
-1. Export current production data.
-2. Uninstall RC-1.1 natively.
-3. Install RC-1.2.
-4. Import data.
+1. Export current production data via Settings -> Backup.
+2. Uninstall RC-1.2 natively.
+3. Install RC-1.3 release.
+4. Import `.labourbackup` data successfully safely reloading UI layers.
 
 ## Final Status
-RC-1.2 structural and architectural defects are fully resolved. Automated coverage validates data continuity successfully. Ready for final manual validation and deployment.
+RC-1.3 offline workflows, domain constraints, UI validations, and migration protocols are comprehensively locked and tested natively without exceptions. Approved for release generation.

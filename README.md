@@ -63,5 +63,9 @@ The repository has undergone a strict, multi-phase audit evaluating the frontend
 - Database migration logic
 - QA implementations
 
-**Not Allowed:**
-- Undocumented breaking changes
+# 11. Application Screenshots
+A full gallery of application screenshots is available in the [Screenshots Gallery](docs/screenshots/README.md).
+
+| Dashboard | History | Analytics |
+| :---: | :---: | :---: |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![History](docs/screenshots/history.png) | ![Analytics](docs/screenshots/analytics.png) |

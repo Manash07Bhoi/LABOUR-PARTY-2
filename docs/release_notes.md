@@ -13,7 +13,7 @@ This release completes the final stabilization of RC-1.3. It focuses on resolvin
 ## Technical Decisions
 - **Next Trip Deep Cloning**: `ConfirmNextTripScreen` physically deep-copies `TripLabour` associations instead of referencing old pointers ensuring complete independence of new entries natively via Dart memory models.
 - **Migration Schema Fallbacks**: Legacy `TripModel` records automatically hydrate default fields using `@HiveField` defaults. This prevents destructive wipe behaviors during database upgrades directly supporting continuity.
-- **Target Platform Build Output**: APK bloat reduced via explicitly targeting `android-arm64`, dropping APK payload footprint drastically.
+- **Target Platform Build Output**: APK bloat reduced via explicitly targeting `android-arm64`, dropping APK payload footprint drastically to ~18.7MB.
 
 ## Risk Assessment
 - **APK Continuity Conflict**: Updating from RC-1.1 / RC-1.2 continues to fail cleanly due to misaligned `.jks` Keystore fingerprints absent from the repository. Adhere to documented data migration patterns.
@@ -24,6 +24,10 @@ Administrators performing the upgrade must utilize the in-app backup/restore fun
 2. Uninstall RC-1.2 natively.
 3. Install RC-1.3 release.
 4. Import `.labourbackup` data successfully safely reloading UI layers.
+
+## Release Artifacts
+- **APK Checksum (SHA-256)**: 50be77f55dfa6e153e5583f77709c2167db1e1992e09066a7c3f7e7b051d57c7
+- **Architecture**: `android-arm64` only
 
 ## Final Status
 RC-1.3 offline workflows, domain constraints, UI validations, and migration protocols are comprehensively locked and tested natively without exceptions. Approved for release generation.
